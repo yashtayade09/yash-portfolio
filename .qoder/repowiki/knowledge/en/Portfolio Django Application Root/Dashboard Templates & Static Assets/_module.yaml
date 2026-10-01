@@ -1,0 +1,11 @@
+schema_version: 1
+module_path: templates_and_static
+title: Dashboard Templates & Static Assets
+scope:
+    - templates/
+    - static/
+source_files: []
+depends_on: []
+related_to:
+    - path: core_config
+    - path: portfolio_app

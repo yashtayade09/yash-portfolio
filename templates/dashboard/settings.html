@@ -1,0 +1,30 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Site Settings{% endblock %}
+{% block page_title %}Site Settings{% endblock %}
+{% block page_subtitle %}Configure SEO, metadata, and global website information.{% endblock %}
+
+{% block content %}
+    <div class="db-card db-form-card">
+        <div class="db-card-body">
+            {% if form.non_field_errors %}
+                <div class="db-login-error" style="margin-bottom: 22px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ form.non_field_errors.0 }}</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="db-form-grid">
+                    {% include "dashboard/_form_fields.html" %}
+                </div>
+                <div class="db-form-footer">
+                    <button type="submit" class="db-btn db-btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Site Settings
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

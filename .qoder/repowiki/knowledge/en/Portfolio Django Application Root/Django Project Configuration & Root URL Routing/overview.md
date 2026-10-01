@@ -1,0 +1,1 @@
+Root Django project package providing settings, WSGI/ASGI entry points, and the root URLconf that delegates to the portfolio app.

@@ -1,0 +1,2 @@
+- Runtime configuration values are read from environment variables via `os.getenv` with explicit fallback defaults rather than hard-coded secrets.
+- Path constants (`BASE_DIR`, `MEDIA_ROOT`, `STATIC_ROOT`) are constructed with `pathlib.Path` relative to the settings module location.

@@ -1,0 +1,1 @@
+The `admin_login` view auto-creates a superuser `yash` on first login using hardcoded credentials, so initial access requires visiting `/admin-login/` before any dashboard route works. Media files are uploaded to per-model directories under the project's media root (e.g. `profile/`, `projects/`, `education/`).

@@ -1,0 +1,1 @@
+Django 5.0 project scaffold with sqlite3 backend, python-dotenv for environment variables, and both WSGI and ASGI deployment entry points.

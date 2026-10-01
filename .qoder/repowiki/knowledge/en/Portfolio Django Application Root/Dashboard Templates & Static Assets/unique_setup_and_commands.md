@@ -1,0 +1,1 @@
+None beyond standard Django template rendering; the dashboard requires the `dashboard_extras` template tag library to be installed and registered so `generic_form.html` can use the `widget_type` filter.

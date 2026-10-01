@@ -1,0 +1,1 @@
+Django (WSGI/ASGI) with SQLite (`db.sqlite3`) for persistence; vanilla JavaScript SPA on the client side consuming Django REST-style JSON endpoints; CSS custom properties drive dark/light theme switching persisted in `localStorage`.

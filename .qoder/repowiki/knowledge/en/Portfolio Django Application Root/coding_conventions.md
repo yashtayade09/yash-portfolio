@@ -1,0 +1,2 @@
+- Public-facing content is rendered entirely on the client by `main.js` after fetching a single `/api/portfolio/` JSON payload, rather than via server-side template rendering.
+- User-generated input (e.g., contact form) is submitted as JSON via `fetch` to dedicated `/api/*` endpoints instead of traditional Django form POSTs.

@@ -1,0 +1,1 @@
+Requires a `.env` file exposing at least `SECRET_KEY`, `DEBUG`, and `ALLOWED_HOSTS`; `DEBUG` defaults to `True` and `SECRET_KEY` falls back to a hardcoded insecure key when absent.

@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: core_config
+title: Django Project Configuration & Root URL Routing
+scope:
+    - core/
+source_files: []
+depends_on: []
+related_to:
+    - path: portfolio_app
+    - path: templates_and_static

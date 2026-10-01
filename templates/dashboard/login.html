@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | YT Portfolio</title>
+    <script>
+        /* Apply saved theme before first paint to avoid flash */
+        (function () {
+            try {
+                var t = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { /* private mode */ }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;550;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+</head>
+<body class="db-body">
+    <div class="db-bg" aria-hidden="true"></div>
+
+    <button type="button" class="db-icon-btn db-theme-toggle db-login-theme" title="Toggle theme">
+        <i class="fa-solid fa-moon"></i>
+        <i class="fa-solid fa-sun"></i>
+    </button>
+
+    <div class="db-login-wrap">
+        <div class="db-login-card">
+            <div class="db-login-logo">YT</div>
+            <h1 class="db-login-title">Command Center</h1>
+            <p class="db-login-sub">Authentication required to access the dashboard.</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="db-login-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="db-form-group">
+                    <label for="id_username">Username</label>
+                    <input type="text" id="id_username" name="username" placeholder="Enter your username" required autofocus
+                           autocomplete="username">
+                </div>
+                <div class="db-form-group" style="margin-bottom: 26px;">
+                    <label for="id_password">Password</label>
+                    <div class="db-pw-wrap">
+                        <input type="password" id="id_password" name="password" placeholder="Enter your password" required
+                               autocomplete="current-password">
+                        <button type="button" class="db-pw-toggle" aria-label="Toggle password visibility">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="db-btn db-btn-primary" style="width: 100%;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Enter Dashboard
+                </button>
+            </form>
+
+            <div class="db-login-footer">
+                <a href="/"><i class="fa-solid fa-arrow-left"></i>&nbsp; Back to portfolio</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'dashboard.js' %}"></script>
+</body>
+</html>

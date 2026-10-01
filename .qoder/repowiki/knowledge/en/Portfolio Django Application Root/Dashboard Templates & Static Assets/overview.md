@@ -1,0 +1,1 @@
+Django template layout and static assets powering the admin dashboard, providing a shared base shell, generic list/form views, and per-page templates for portfolio content management.

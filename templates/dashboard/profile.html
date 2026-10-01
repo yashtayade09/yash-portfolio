@@ -1,0 +1,36 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Profile Management{% endblock %}
+{% block page_title %}Profile Management{% endblock %}
+{% block page_subtitle %}Update your personal identity and professional details.{% endblock %}
+
+{% block page_actions %}
+    <a href="/" class="db-btn db-btn-ghost" target="_blank" rel="noopener">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> Preview Site
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="db-card db-form-card">
+        <div class="db-card-body">
+            {% if form.non_field_errors %}
+                <div class="db-login-error" style="margin-bottom: 22px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ form.non_field_errors.0 }}</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="db-form-grid">
+                    {% include "dashboard/_form_fields.html" %}
+                </div>
+                <div class="db-form-footer">
+                    <button type="submit" class="db-btn db-btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

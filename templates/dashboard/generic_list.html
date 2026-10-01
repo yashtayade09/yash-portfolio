@@ -1,0 +1,80 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}{{ model_name }} Management{% endblock %}
+{% block page_title %}{{ model_name }} Management{% endblock %}
+{% block page_subtitle %}Manage your {{ model_name|lower }} records and their visibility.{% endblock %}
+
+{% block page_actions %}
+    <a href="?action=add" class="db-btn db-btn-primary">
+        <i class="fa-solid fa-plus"></i> Add {{ model_name }}
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="db-table-wrap">
+        <div class="db-table-toolbar">
+            <div class="db-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="db-table-search" placeholder="Search {{ model_name|lower }} records…">
+            </div>
+            <span class="db-table-count">Showing <b>{{ items|length }}</b> of {{ items|length }} record{{ items|length|pluralize }}</span>
+        </div>
+
+        <div class="db-table-scroll">
+            <table class="db-table" id="db-data-table">
+                <thead>
+                    <tr>
+                        {% if has_order %}<th>Order</th>{% endif %}
+                        <th>Details</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            {% if has_order %}<td><span class="db-pill db-pill-info">#{{ item.display_order }}</span></td>{% endif %}
+                            <td>
+                                <div class="db-row-title">{{ item }}</div>
+                                <div class="db-row-sub">ID: {{ item.id }}</div>
+                            </td>
+                            <td>
+                                {% if item.is_visible or item.is_active %}
+                                    {% if item.is_visible %}<span class="db-pill db-pill-success">Visible</span>
+                                    {% else %}<span class="db-pill db-pill-success">Active</span>{% endif %}
+                                {% else %}
+                                    <span class="db-pill db-pill-muted">Hidden</span>
+                                {% endif %}
+                                {% if item.is_featured %}<span class="db-pill db-pill-warning">Featured</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="db-row-actions" style="justify-content: flex-end;">
+                                    <a href="?action=edit&id={{ item.id }}" class="db-act db-act-edit" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                    <a href="{% url 'delete_item' model_key item.id %}" class="db-act db-act-delete js-confirm"
+                                       data-confirm="Delete this {{ model_name|lower }}? This cannot be undone." title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="db-empty">
+                                    <i class="fa-solid fa-box-open"></i>
+                                    <h3>No {{ model_name|lower }} records yet</h3>
+                                    <p>Nothing has been added to this module. Create your first record to get started.</p>
+                                    <a href="?action=add" class="db-btn db-btn-primary db-btn-sm">
+                                        <i class="fa-solid fa-plus"></i> Add {{ model_name }}
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

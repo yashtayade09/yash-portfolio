@@ -1,0 +1,58 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: en-US
+branch: Q0DeR-MaG1C-BrAnCh-Fo2-NoN-GiT-Or-No-C0MmIt
+nodes_managed: true
+exported_at: "2026-09-27T05:53:24Z"
+modules:
+    "":
+        dir_name: Portfolio Django Application Root
+        title: Portfolio Django Application Root
+        scope:
+            - manage.py
+            - index.html
+            - main.js
+            - style.css
+            - .env
+            - db.sqlite3
+        source_files: []
+        children:
+            - core_config
+            - portfolio_app
+            - templates_and_static
+        depends_on: []
+        related_to: []
+    core_config:
+        dir_name: Django Project Configuration & Root URL Routing
+        title: Django Project Configuration & Root URL Routing
+        scope:
+            - core/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: portfolio_app
+            - path: templates_and_static
+    portfolio_app:
+        dir_name: Portfolio Django App (Admin Dashboard & Public API)
+        title: Portfolio Django App (Admin Dashboard & Public API)
+        scope:
+            - portfolio/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: core_config
+            - path: templates_and_static
+    templates_and_static:
+        dir_name: Dashboard Templates & Static Assets
+        title: Dashboard Templates & Static Assets
+        scope:
+            - templates/
+            - static/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: core_config
+            - path: portfolio_app

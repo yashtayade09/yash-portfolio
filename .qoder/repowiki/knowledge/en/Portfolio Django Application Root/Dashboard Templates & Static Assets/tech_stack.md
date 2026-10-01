@@ -1,0 +1,1 @@
+Django templates with custom template tag library `dashboard_extras` (providing `widget_type` filter); Font Awesome 6.5 icons; Google Fonts (Space Grotesk, Inter, JetBrains Mono); vanilla ES5 JavaScript with no framework dependencies.

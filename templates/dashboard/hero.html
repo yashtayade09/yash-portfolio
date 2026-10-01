@@ -1,0 +1,56 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Hero Roles{% endblock %}
+{% block page_title %}Hero Roles{% endblock %}
+{% block page_subtitle %}Configure the rotating roles that appear in your hero section.{% endblock %}
+
+{% block content %}
+    <div class="db-card" style="margin-bottom: 24px;">
+        <div class="db-card-head">
+            <h2><i class="fa-solid fa-plus"></i> Add a New Role</h2>
+        </div>
+        <div class="db-card-body">
+            <form method="POST" class="db-inline-form">
+                {% csrf_token %}
+                <input type="text" name="role_text" placeholder="e.g. Full-Stack Developer" maxlength="100" required>
+                <button type="submit" class="db-btn db-btn-primary">
+                    <i class="fa-solid fa-plus"></i> Add Role
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="db-card">
+        <div class="db-card-head">
+            <h2><i class="fa-solid fa-list-ol"></i> Rotation Order</h2>
+            <span class="db-pill db-pill-info">{{ roles|length }} role{{ roles|length|pluralize }}</span>
+        </div>
+        <div class="db-card-body">
+            {% for role in roles %}
+                <div class="db-role-row">
+                    <div class="db-role-main">
+                        <span class="db-role-index">#{{ forloop.counter }}</span>
+                        <span class="db-role-text">{{ role.role_text }}</span>
+                        {% if role.is_active %}
+                            <span class="db-pill db-pill-success">Active</span>
+                        {% else %}
+                            <span class="db-pill db-pill-muted">Hidden</span>
+                        {% endif %}
+                    </div>
+                    <div class="db-row-actions">
+                        <a href="{% url 'delete_hero_role' role.id %}" class="db-act db-act-delete js-confirm"
+                           data-confirm="Delete the role “{{ role.role_text }}”?" title="Delete role">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="db-empty">
+                    <i class="fa-solid fa-bolt"></i>
+                    <h3>No roles defined yet</h3>
+                    <p>Add your first rotating role above — it will animate in your portfolio's hero section.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

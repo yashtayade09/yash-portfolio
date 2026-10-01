@@ -1,0 +1,6 @@
+- Each content model gets a matching `ModelForm` subclass in `forms_extended.py` with `fields = '__all__'`, keeping form definitions trivially aligned with model fields.
+- Content management views follow a uniform pattern: a one-line wrapper delegates to a shared `generic_crud(request, Model, FormClass, url_name, label)` function that handles list/add/edit/delete against a single generic template.
+- Listable models consistently include a `display_order` integer field and declare `class Meta: ordering = ['display_order']` to control presentation order across Education, Experience, Skills, Projects, Certificates, etc.
+- Public-facing collections are filtered by visibility flags (`is_visible=True`, `is_active=True`) before being serialized into the `portfolio_api` JSON response.
+- Dashboard views are uniformly protected with `@login_required` and communicate user feedback via `django.contrib.messages.success/error` after mutations.
+- Related objects are fetched efficiently using `select_related` and `prefetch_related` (e.g. projects with images, skills with categories) when building the portfolio API payload.

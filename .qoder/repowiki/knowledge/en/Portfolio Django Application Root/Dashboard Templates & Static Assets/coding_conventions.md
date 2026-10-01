@@ -1,0 +1,6 @@
+- All CSS class names use a `db-` namespace prefix (e.g. `db-sidebar`, `db-btn`, `db-toast`, `db-form-group`) to avoid collisions with third-party stylesheets.
+- Page templates extend `dashboard/base.html` and fill only the defined blocks (`title`, `page_title`, `page_subtitle`, `page_actions`, `content`, `extra_css`, `extra_js`) rather than duplicating layout markup.
+- Reusable CRUD views follow the generic templates by passing a small, consistent set of context variables (`model_name`, `items`, `has_order`, `list_url`, `item`) instead of rendering inline HTML.
+- Sidebar navigation links are generated with `{% url 'named_url' %}` and compare `request.resolver_match.url_name` against known route names to apply an `active` class for highlighting the current page.
+- User-facing confirmations on destructive actions are implemented by adding a `js-confirm` class plus a `data-confirm` attribute on links/forms, letting the single `initConfirms()` routine handle all prompts.
+- JavaScript modules inside `dashboard.js` are self-contained functions invoked from a central `DOMContentLoaded` handler, each guarding against missing elements with early returns so the script runs safely on every page.

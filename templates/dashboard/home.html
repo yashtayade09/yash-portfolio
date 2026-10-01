@@ -1,0 +1,133 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Welcome back, {{ request.user.username|capfirst }}{% endblock %}
+{% block page_subtitle %}Manage your portfolio content and track your metrics in real time.{% endblock %}
+
+{% block page_actions %}
+    <a href="{% url 'manage_projects' %}?action=add" class="db-btn db-btn-primary">
+        <i class="fa-solid fa-plus"></i> New Project
+    </a>
+    <a href="/" class="db-btn db-btn-ghost" target="_blank" rel="noopener">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> View Site
+    </a>
+{% endblock %}
+
+{% block content %}
+    <!-- Live metrics -->
+    <div class="db-grid db-grid-metrics">
+        <div class="db-card db-metric accent-blue">
+            <div class="db-metric-icon"><i class="fa-solid fa-folder-open"></i></div>
+            <div class="db-metric-info">
+                <div class="db-metric-value" data-counter="{{ project_count }}">0</div>
+                <div class="db-metric-label">Total Projects</div>
+                <a href="{% url 'manage_projects' %}" class="db-metric-trend">Manage projects <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="db-card db-metric accent-violet">
+            <div class="db-metric-icon"><i class="fa-solid fa-certificate"></i></div>
+            <div class="db-metric-info">
+                <div class="db-metric-value" data-counter="{{ cert_count }}">0</div>
+                <div class="db-metric-label">Certificates</div>
+                <a href="{% url 'manage_certificates' %}" class="db-metric-trend">Manage certificates <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="db-card db-metric accent-cyan">
+            <div class="db-metric-icon"><i class="fa-solid fa-code"></i></div>
+            <div class="db-metric-info">
+                <div class="db-metric-value" data-counter="{{ skill_count }}">0</div>
+                <div class="db-metric-label">Total Skills</div>
+                <a href="{% url 'manage_skills' %}" class="db-metric-trend">Manage skills <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="db-card db-metric accent-emerald">
+            <div class="db-metric-icon"><i class="fa-solid fa-envelope"></i></div>
+            <div class="db-metric-info">
+                <div class="db-metric-value" data-counter="{{ msg_count }}">0</div>
+                <div class="db-metric-label">Unread Messages</div>
+                <a href="{% url 'manage_messages' %}" class="db-metric-trend">Open inbox <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="db-card db-metric accent-magenta">
+            <div class="db-metric-icon"><i class="fa-solid fa-trophy"></i></div>
+            <div class="db-metric-info">
+                <div class="db-metric-value" data-counter="{{ achievement_count }}">0</div>
+                <div class="db-metric-label">Achievements</div>
+                <a href="{% url 'manage_achievements' %}" class="db-metric-trend">Manage achievements <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-grid db-grid-2col">
+        <!-- Content overview -->
+        <div class="db-card">
+            <div class="db-card-head">
+                <h2><i class="fa-solid fa-layer-group"></i> Content Overview</h2>
+                <span class="db-pill db-pill-info">{{ modules|length }} modules</span>
+            </div>
+            <div class="db-card-body">
+                <div class="db-modules-grid">
+                    {% for module in modules %}
+                    <a href="{% url module.url %}" class="db-module-tile" style="--i: {{ forloop.counter0 }}">
+                        <i class="fa-solid {{ module.icon }}"></i>
+                        <span class="name">{{ module.name }}</span>
+                        <span class="count"><b>{{ module.count }}</b> record{{ module.count|pluralize }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <!-- Quick actions -->
+            <div class="db-card" style="margin-bottom: 22px;">
+                <div class="db-card-head">
+                    <h2><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
+                </div>
+                <div class="db-card-body">
+                    <div class="db-quick-grid">
+                        <a href="{% url 'manage_projects' %}?action=add" class="db-quick-link"><i class="fa-solid fa-plus"></i><span>Add Project</span></a>
+                        <a href="{% url 'manage_certificates' %}?action=add" class="db-quick-link"><i class="fa-solid fa-plus"></i><span>Add Certificate</span></a>
+                        <a href="{% url 'manage_skills' %}?action=add" class="db-quick-link"><i class="fa-solid fa-plus"></i><span>Add Skill</span></a>
+                        <a href="{% url 'manage_education' %}?action=add" class="db-quick-link"><i class="fa-solid fa-plus"></i><span>Add Education</span></a>
+                        <a href="{% url 'manage_hero_roles' %}" class="db-quick-link"><i class="fa-solid fa-bolt"></i><span>Hero Roles</span></a>
+                        <a href="{% url 'manage_profile' %}" class="db-quick-link"><i class="fa-solid fa-user-astronaut"></i><span>Update Profile</span></a>
+                        <a href="{% url 'manage_resume' %}" class="db-quick-link"><i class="fa-solid fa-file-pdf"></i><span>Upload Resume</span></a>
+                        <a href="{% url 'manage_settings' %}" class="db-quick-link"><i class="fa-solid fa-globe"></i><span>SEO Settings</span></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent messages -->
+            <div class="db-card">
+                <div class="db-card-head">
+                    <h2><i class="fa-solid fa-inbox"></i> Recent Messages</h2>
+                    <a href="{% url 'manage_messages' %}" class="db-btn db-btn-ghost db-btn-sm">View all</a>
+                </div>
+                <div class="db-card-body">
+                    {% if recent_messages %}
+                        {% for msg in recent_messages %}
+                        <div class="db-msg {% if not msg.is_read %}unread{% endif %}" style="margin-bottom: 10px;">
+                            <div class="db-msg-avatar">{{ msg.name|first|upper }}</div>
+                            <div class="db-msg-body">
+                                <div class="db-msg-top">
+                                    <span class="db-msg-name">{{ msg.name }}</span>
+                                    <span class="db-msg-email">{{ msg.email }}</span>
+                                    <span class="db-msg-time">{{ msg.created_at|date:"M d, H:i" }}</span>
+                                </div>
+                                <div class="db-msg-subject">{{ msg.subject }}</div>
+                                <div class="db-msg-text">{{ msg.message|truncatechars:110 }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="db-empty" style="padding: 34px 12px;">
+                            <i class="fa-solid fa-inbox"></i>
+                            <p>No messages yet. Your inbox is quiet — share your portfolio to get contacted!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

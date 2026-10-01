@@ -1,0 +1,24 @@
+{% load dashboard_extras %}
+{% for field in form %}
+    {% with wtype=field|widget_type %}
+    <div class="db-form-group {% if wtype == 'textarea' or wtype == 'checkboxinput' %}db-form-group--full{% endif %} {% if field.errors %}has-error{% endif %}">
+        {% if wtype == 'checkboxinput' %}
+            <label class="db-checkbox-row" for="{{ field.id_for_label }}">
+                {{ field }}
+                <span>{{ field.label }}{% if field.field.required %}<span class="req">*</span>{% endif %}</span>
+            </label>
+        {% else %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="req">*</span>{% endif %}</label>
+            {{ field }}
+        {% endif %}
+
+        {% if field.help_text %}
+            <small class="db-helptext">{{ field.help_text|safe }}</small>
+        {% endif %}
+
+        {% for error in field.errors %}
+            <span class="db-field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</span>
+        {% endfor %}
+    </div>
+    {% endwith %}
+{% endfor %}

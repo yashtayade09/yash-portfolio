@@ -1,0 +1,62 @@
+{% extends "dashboard/base.html" %}
+{% load dashboard_extras %}
+
+{% block title %}{% if item %}Edit{% else %}Add{% endif %} {{ model_name }}{% endblock %}
+{% block page_title %}{% if item %}Edit {{ model_name }}{% else %}Add New {{ model_name }}{% endif %}{% endblock %}
+{% block page_subtitle %}{% if item %}Update the details of this record.{% else %}Enter the details for the new {{ model_name|lower }} below.{% endif %}{% endblock %}
+
+{% block page_actions %}
+    <a href="{% if list_url %}{% url list_url %}{% else %}javascript:history.back(){% endif %}" class="db-btn db-btn-ghost">
+        <i class="fa-solid fa-arrow-left"></i> Back to list
+    </a>
+{% endblock %}
+
+{% block content %}
+    <div class="db-card db-form-card">
+        <div class="db-card-body">
+            {% if form.non_field_errors %}
+                <div class="db-login-error" style="margin-bottom: 22px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span>{{ form.non_field_errors.0 }}</span>
+                </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="db-form-grid">
+                    {% for field in form %}
+                        {% with wtype=field|widget_type %}
+                        <div class="db-form-group {% if wtype == 'textarea' or wtype == 'checkboxinput' %}db-form-group--full{% endif %} {% if field.errors %}has-error{% endif %}">
+                            {% if wtype == 'checkboxinput' %}
+                                <label class="db-checkbox-row" for="{{ field.id_for_label }}">
+                                    {{ field }}
+                                    <span>{{ field.label }}{% if field.field.required %}<span class="req">*</span>{% endif %}</span>
+                                </label>
+                            {% else %}
+                                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="req">*</span>{% endif %}</label>
+                                {{ field }}
+                            {% endif %}
+
+                            {% if field.help_text %}
+                                <small class="db-helptext">{{ field.help_text|safe }}</small>
+                            {% endif %}
+
+                            {% for error in field.errors %}
+                                <span class="db-field-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+
+                <div class="db-form-footer">
+                    <button type="submit" class="db-btn db-btn-primary">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        {% if item %}Save Changes{% else %}Create {{ model_name }}{% endif %}
+                    </button>
+                    <a href="{% if list_url %}{% url list_url %}{% else %}javascript:history.back(){% endif %}" class="db-btn db-btn-ghost">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

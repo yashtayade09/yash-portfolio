@@ -1,0 +1,1 @@
+Root of a Django-based personal portfolio that serves a static front-end consuming JSON APIs from the portfolio app, with an admin dashboard for content management.

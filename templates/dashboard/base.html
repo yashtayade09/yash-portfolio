@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} | YT Admin CMS</title>
+    <script>
+        /* Apply saved theme before first paint to avoid flash */
+        (function () {
+            try {
+                var t = localStorage.getItem('theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { /* private mode */ }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;550;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="db-body">
+    <div class="db-bg" aria-hidden="true"></div>
+
+    <!-- ======================= SIDEBAR ======================= -->
+    <aside class="db-sidebar">
+        <div class="db-sidebar-header">
+            <div class="db-logo">YT</div>
+            <div class="db-brand">
+                <strong>Admin CMS</strong>
+                <span>Control Center</span>
+            </div>
+        </div>
+
+        {% with current_url=request.resolver_match.url_name %}
+        <nav class="db-sidebar-nav">
+            <div class="db-nav-group">
+                <div class="db-nav-label">Overview</div>
+                <a href="{% url 'dashboard' %}" class="db-nav-link {% if current_url == 'dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+                </a>
+            </div>
+
+            <div class="db-nav-group">
+                <div class="db-nav-label">Core Content</div>
+                <a href="{% url 'manage_profile' %}" class="db-nav-link {% if current_url == 'manage_profile' %}active{% endif %}">
+                    <i class="fa-solid fa-user-astronaut"></i><span>Profile</span>
+                </a>
+                <a href="{% url 'manage_hero_roles' %}" class="db-nav-link {% if current_url == 'manage_hero_roles' or current_url == 'delete_hero_role' %}active{% endif %}">
+                    <i class="fa-solid fa-bolt"></i><span>Hero Roles</span>
+                </a>
+                <a href="{% url 'manage_stats' %}" class="db-nav-link {% if current_url == 'manage_stats' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-simple"></i><span>Statistics</span>
+                </a>
+            </div>
+
+            <div class="db-nav-group">
+                <div class="db-nav-label">Portfolio</div>
+                <a href="{% url 'manage_education' %}" class="db-nav-link {% if current_url == 'manage_education' %}active{% endif %}">
+                    <i class="fa-solid fa-graduation-cap"></i><span>Education</span>
+                </a>
+                <a href="{% url 'manage_experience' %}" class="db-nav-link {% if current_url == 'manage_experience' %}active{% endif %}">
+                    <i class="fa-solid fa-briefcase"></i><span>Experience</span>
+                </a>
+                <a href="{% url 'manage_skills' %}" class="db-nav-link {% if current_url == 'manage_skills' %}active{% endif %}">
+                    <i class="fa-solid fa-code"></i><span>Skills</span>
+                </a>
+                <a href="{% url 'manage_projects' %}" class="db-nav-link {% if current_url == 'manage_projects' %}active{% endif %}">
+                    <i class="fa-solid fa-folder-open"></i><span>Projects</span>
+                </a>
+                <a href="{% url 'manage_certificates' %}" class="db-nav-link {% if current_url == 'manage_certificates' %}active{% endif %}">
+                    <i class="fa-solid fa-certificate"></i><span>Certificates</span>
+                </a>
+                <a href="{% url 'manage_workshops' %}" class="db-nav-link {% if current_url == 'manage_workshops' %}active{% endif %}">
+                    <i class="fa-solid fa-chalkboard-user"></i><span>Workshops</span>
+                </a>
+                <a href="{% url 'manage_achievements' %}" class="db-nav-link {% if current_url == 'manage_achievements' %}active{% endif %}">
+                    <i class="fa-solid fa-trophy"></i><span>Achievements</span>
+                </a>
+                <a href="{% url 'manage_services' %}" class="db-nav-link {% if current_url == 'manage_services' %}active{% endif %}">
+                    <i class="fa-solid fa-gears"></i><span>Services</span>
+                </a>
+                <a href="{% url 'manage_tech' %}" class="db-nav-link {% if current_url == 'manage_tech' %}active{% endif %}">
+                    <i class="fa-solid fa-microchip"></i><span>Technologies</span>
+                </a>
+            </div>
+
+            <div class="db-nav-group">
+                <div class="db-nav-label">System</div>
+                <a href="{% url 'manage_messages' %}" class="db-nav-link {% if current_url == 'manage_messages' or current_url == 'toggle_message_read' or current_url == 'delete_message' %}active{% endif %}">
+                    <i class="fa-solid fa-envelope"></i><span>Messages</span>
+                    {% if unread_count %}<em class="db-nav-badge">{{ unread_count }}</em>{% endif %}
+                </a>
+                <a href="{% url 'manage_socials' %}" class="db-nav-link {% if current_url == 'manage_socials' %}active{% endif %}">
+                    <i class="fa-solid fa-link"></i><span>Social Links</span>
+                </a>
+                <a href="{% url 'manage_resume' %}" class="db-nav-link {% if current_url == 'manage_resume' %}active{% endif %}">
+                    <i class="fa-solid fa-file-pdf"></i><span>Resume</span>
+                </a>
+                <a href="{% url 'manage_settings' %}" class="db-nav-link {% if current_url == 'manage_settings' %}active{% endif %}">
+                    <i class="fa-solid fa-globe"></i><span>SEO Settings</span>
+                </a>
+            </div>
+        </nav>
+        {% endwith %}
+
+        <div class="db-sidebar-footer">
+            <div class="db-sidebar-user">
+                <div class="avatar">{{ request.user.username|first|upper }}</div>
+                <div class="meta">
+                    <strong>{{ request.user.username|capfirst }}</strong>
+                    <span>Administrator</span>
+                </div>
+            </div>
+            <a href="{% url 'admin_logout' %}" class="db-btn db-btn-danger db-btn-sm js-confirm" data-confirm="Log out of the dashboard?">
+                <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+            </a>
+        </div>
+    </aside>
+    <div class="db-sidebar-overlay" aria-hidden="true"></div>
+
+    <!-- ======================= MAIN ======================= -->
+    <div class="db-main">
+        <header class="db-topbar">
+            <button type="button" class="db-icon-btn db-burger" aria-label="Open menu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <button type="button" class="db-icon-btn db-collapse-btn" aria-label="Collapse sidebar">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+
+            <div class="db-topbar-search" id="db-quickjump">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="db-quickjump-input" placeholder="Quick jump to a module…  ( / )" autocomplete="off">
+                <div class="db-quickjump-results" id="db-quickjump-results" hidden></div>
+            </div>
+
+            <div class="db-topbar-actions">
+                <a href="/" class="db-icon-btn" title="View live site" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                <a href="{% url 'manage_messages' %}" class="db-icon-btn" title="Messages">
+                    <i class="fa-solid fa-envelope"></i>
+                    {% if unread_count %}<span class="dot"></span>{% endif %}
+                </a>
+                <button type="button" class="db-icon-btn db-theme-toggle" title="Toggle theme">
+                    <i class="fa-solid fa-moon"></i>
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="db-content">
+            <div class="db-page-head">
+                <div>
+                    <h1>{% block page_title %}{% endblock %}</h1>
+                    <p class="db-page-sub">{% block page_subtitle %}{% endblock %}</p>
+                </div>
+                <div class="db-page-actions">{% block page_actions %}{% endblock %}</div>
+            </div>
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- ======================= TOASTS ======================= -->
+    <div class="db-toast-container" aria-live="polite">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="db-toast db-toast-{{ message.tags|default:'info' }}" data-ttl="4200">
+                    {% if message.tags == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                    {% elif message.tags == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>
+                    {% elif message.tags == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+                    {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                    <span>{{ message }}</span>
+                    <button type="button" class="db-toast-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script src="{% static 'dashboard.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

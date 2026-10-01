@@ -1,0 +1,68 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages Inbox{% endblock %}
+{% block page_subtitle %}Contact form submissions from your portfolio visitors.{% endblock %}
+
+{% block page_actions %}
+    {% if unread_count %}
+        <a href="{% url 'mark_all_read' %}" class="db-btn db-btn-ghost js-confirm" data-confirm="Mark all {{ unread_count }} message{{ unread_count|pluralize }} as read?">
+            <i class="fa-solid fa-check-double"></i> Mark all read
+        </a>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="db-card">
+        <div class="db-card-head">
+            <h2><i class="fa-solid fa-inbox"></i> Inbox</h2>
+            <div class="db-tabs">
+                <a href="{% url 'manage_messages' %}" class="db-tab {% if filter == 'all' %}active{% endif %}">All</a>
+                <a href="{% url 'manage_messages' %}?filter=unread" class="db-tab {% if filter == 'unread' %}active{% endif %}">Unread</a>
+                <a href="{% url 'manage_messages' %}?filter=read" class="db-tab {% if filter == 'read' %}active{% endif %}">Read</a>
+            </div>
+        </div>
+        <div class="db-card-body">
+            {% for msg in messages_list %}
+                <div class="db-msg {% if not msg.is_read %}unread{% endif %}">
+                    <div class="db-msg-avatar">{{ msg.name|first|upper }}</div>
+                    <div class="db-msg-body">
+                        <div class="db-msg-top">
+                            <span class="db-msg-name">{{ msg.name }}</span>
+                            <span class="db-msg-email">{{ msg.email }}</span>
+                            {% if not msg.is_read %}<span class="db-pill db-pill-info">New</span>{% endif %}
+                            <span class="db-msg-time">{{ msg.created_at|date:"M d, Y · H:i" }}</span>
+                        </div>
+                        <div class="db-msg-subject">{{ msg.subject }}</div>
+                        <div class="db-msg-text">{{ msg.message|linebreaksbr }}</div>
+                        <div style="margin-top: 10px;">
+                            <a href="mailto:{{ msg.email }}?subject=Re: {{ msg.subject|urlencode }}" class="db-btn db-btn-ghost db-btn-sm">
+                                <i class="fa-solid fa-reply"></i> Reply
+                            </a>
+                        </div>
+                    </div>
+                    <div class="db-msg-actions">
+                        <a href="{% url 'toggle_message_read' msg.id %}" class="db-act {% if msg.is_read %}db-act-view{% else %}db-act-edit{% endif %}"
+                           title="{% if msg.is_read %}Mark as unread{% else %}Mark as read{% endif %}">
+                            <i class="fa-solid {% if msg.is_read %}fa-envelope{% else %}fa-envelope-open{% endif %}"></i>
+                        </a>
+                        <a href="{% url 'delete_message' msg.id %}" class="db-act db-act-delete js-confirm"
+                           data-confirm="Delete the message from {{ msg.name }}? This cannot be undone." title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="db-empty">
+                    <i class="fa-solid fa-inbox"></i>
+                    <h3>Inbox zero</h3>
+                    <p>
+                        {% if filter == 'unread' %}No unread messages — you're all caught up.
+                        {% elif filter == 'read' %}No read messages yet.
+                        {% else %}No messages yet. Share your portfolio to start receiving contact form submissions.{% endif %}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

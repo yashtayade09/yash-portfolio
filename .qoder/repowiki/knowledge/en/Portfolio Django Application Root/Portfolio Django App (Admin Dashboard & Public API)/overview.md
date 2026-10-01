@@ -1,0 +1,1 @@
+Django app that powers a personal portfolio site with an admin dashboard for managing profile, projects, skills, and content, plus public JSON APIs serving the front-end.

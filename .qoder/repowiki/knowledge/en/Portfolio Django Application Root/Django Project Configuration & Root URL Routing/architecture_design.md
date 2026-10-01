@@ -1,0 +1,5 @@
+Standard Django project layout under `core/`:
+- `settings.py` is the single source of truth: it loads `.env` via python-dotenv, configures SQLite (`db.sqlite3`), registers the `portfolio` app in `INSTALLED_APPS`, wires a custom template context processor `portfolio.context_processors.dashboard_globals`, and defines static/media roots at `BASE_DIR / 'static'` and `BASE_DIR / 'media'`.
+- `urls.py` exposes only two routes — Django admin at `/admin/` and includes all other URLs from `portfolio.urls` at the root path; media files are served via `django.conf.urls.static` when `DEBUG=True`.
+- `wsgi.py` and `asgi.py` are minimal bootstrap modules that set `DJANGO_SETTINGS_MODULE=core.settings` and expose the standard `application` callable for production servers (Gunicorn/Uvicorn).
+- Dependency direction is one-way: this module depends on the sibling `portfolio` app but nothing inside `portfolio` depends back on `core` beyond Django's built-in settings API.

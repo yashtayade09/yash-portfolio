@@ -1,0 +1,1 @@
+Run with `python manage.py runserver`; migrations and data load via standard Django management commands against the SQLite database at the repository root.

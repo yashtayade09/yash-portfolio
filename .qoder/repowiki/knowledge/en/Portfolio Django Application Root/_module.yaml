@@ -1,0 +1,13 @@
+schema_version: 1
+module_path: ""
+title: Portfolio Django Application Root
+scope:
+    - manage.py
+    - index.html
+    - main.js
+    - style.css
+    - .env
+    - db.sqlite3
+source_files: []
+depends_on: []
+related_to: []

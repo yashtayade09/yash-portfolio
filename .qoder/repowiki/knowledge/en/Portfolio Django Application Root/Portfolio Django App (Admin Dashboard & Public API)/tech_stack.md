@@ -1,0 +1,1 @@
+Django (AppConfig with `BigAutoField`), Django ORM with `JSONField` for responsibilities/features lists, `ImageField`/`FileField` uploads to media directories, Django Messages framework for flash feedback, and `JsonResponse`-based REST endpoints.
