@@ -50,8 +50,8 @@ class Education(models.Model):
     institution = models.CharField(max_length=255)
     degree = models.CharField(max_length=255)
     field = models.CharField(max_length=255)
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    start_date = models.TextField(blank=True, null=True)
+    end_date = models.TextField(blank=True, null=True)
     is_current = models.BooleanField(default=False)
     percentage = models.CharField(max_length=20)
     description = models.TextField()
@@ -80,8 +80,8 @@ class Experience(models.Model):
     position = models.CharField(max_length=255)
     employment_type = models.CharField(max_length=100)
     location = models.CharField(max_length=255)
-    start_date = models.DateField(blank=True, null=True)
-    end_date = models.DateField(blank=True, null=True)
+    start_date = models.TextField(blank=True, null=True)
+    end_date = models.TextField(blank=True, null=True)
     is_current = models.BooleanField(default=False)
     description = models.TextField()
     responsibilities = models.JSONField(default=list)
@@ -138,7 +138,7 @@ class Technology(models.Model):
 class Certificate(models.Model):
     title = models.CharField(max_length=255)
     issuer = models.CharField(max_length=255)
-    issue_date = models.DateField(blank=True, null=True)
+    issue_date = models.TextField(blank=True, null=True)
     credential_id = models.CharField(max_length=255, blank=True, null=True)
     credential_url = models.URLField(blank=True, null=True)
     image = models.ImageField(upload_to='certificates/', blank=True)
@@ -157,7 +157,7 @@ class Certificate(models.Model):
 class Workshop(models.Model):
     title = models.CharField(max_length=255)
     organizer = models.CharField(max_length=255)
-    date = models.DateField(blank=True, null=True)
+    date = models.TextField(blank=True, null=True)
     duration = models.CharField(max_length=100)
     description = models.TextField()
     image = models.ImageField(upload_to='workshops/', blank=True, null=True)
@@ -223,7 +223,7 @@ class ProjectImage(models.Model):
 
 class Achievement(models.Model):
     title = models.CharField(max_length=255)
-    date = models.DateField(blank=True, null=True)
+    date = models.TextField(blank=True, null=True)
     description = models.TextField()
     organization = models.CharField(max_length=255, blank=True, null=True)
     image = models.ImageField(upload_to='achievements/', blank=True, null=True)

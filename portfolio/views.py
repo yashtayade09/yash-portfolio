@@ -371,11 +371,11 @@ def contact_api(request):
     return JsonResponse({'status': 'error', 'message': 'Only POST requests allowed'}, status=405)
 
 def _date_range(start, end, is_current):
-    """Format a human-readable date range for the public API."""
-    start_str = start.strftime('%b %Y') if start else ''
+    """Return the date labels as entered for the public API."""
+    start_str = start or ''
     if is_current:
         return f"{start_str} — Present" if start_str else 'Present'
-    end_str = end.strftime('%b %Y') if end else ''
+    end_str = end or ''
     if start_str and end_str:
         return f"{start_str} — {end_str}"
     return end_str or start_str or ''
@@ -477,7 +477,7 @@ def portfolio_api(request):
             {
                 'title': c.title,
                 'issuer': c.issuer,
-                'date': c.issue_date.strftime('%b %Y') if c.issue_date else '',
+                'date': c.issue_date or '',
                 'image': c.image.url if c.image else '',
                 'description': c.description,
                 'pdf': c.pdf.url if c.pdf else '',
@@ -488,7 +488,7 @@ def portfolio_api(request):
             {
                 'title': workshop.title,
                 'organizer': workshop.organizer,
-                'date': workshop.date.strftime('%b %Y') if workshop.date else '',
+                'date': workshop.date or '',
                 'description': workshop.description,
                 'topic': workshop.topic,
                 'url': workshop.url or '',
