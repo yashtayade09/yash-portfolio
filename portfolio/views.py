@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404, Http404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -9,13 +9,13 @@ from django.core.mail import send_mail
 from .models import (
     Profile, HeroRole, Statistic, Education, Experience, Project, ProjectCategory,
     Certificate, Workshop, Achievement, Service, Resume, SocialLink, SiteSettings,
-    ContactMessage, Skill, SkillCategory, Technology,
+    ContactMessage, Skill, SkillCategory, Technology, Hobby,
 )
 from .forms import ProfileForm, HeroRoleForm, SiteSettingsForm
 from .forms_extended import (
     StatisticForm, EducationForm, ExperienceForm, SkillForm, CertificateForm,
     WorkshopForm, ProjectForm, AchievementForm, ServiceForm, ResumeForm,
-    SocialLinkForm, TechnologyForm,
+    SocialLinkForm, TechnologyForm, HobbyForm,
 )
 
 
@@ -41,28 +41,15 @@ def home_view(request):
 def admin_login(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
+    form = AuthenticationForm(request, data=request.POST or None)
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        # Simple hardcoded logic as requested
-        if username == 'yash' and password == 'tayde2906':
-            # We still need a user object for @login_required to work
-            from django.contrib.auth.models import User
-            user, created = User.objects.get_or_create(username='yash')
-            if created:
-                user.set_password('tayde2906')
-                user.is_staff = True
-                user.is_superuser = True
-                user.save()
-            
-            login(request, user)
+        if form.is_valid():
+            login(request, form.get_user())
             return redirect('dashboard')
-        else:
-            messages.error(request, "Invalid username or password.")
-    
-    return render(request, 'dashboard/login.html')
+        messages.error(request, 'Invalid username or password.')
+
+    return render(request, 'dashboard/login.html', {'form': form})
 
 def admin_logout(request):
     logout(request)
@@ -79,6 +66,7 @@ def dashboard_home(request):
         {'name': 'Workshops', 'count': Workshop.objects.count(), 'url': 'manage_workshops', 'icon': 'fa-chalkboard-user'},
         {'name': 'Achievements', 'count': Achievement.objects.count(), 'url': 'manage_achievements', 'icon': 'fa-trophy'},
         {'name': 'Services', 'count': Service.objects.count(), 'url': 'manage_services', 'icon': 'fa-gears'},
+        {'name': 'Hobbies', 'count': Hobby.objects.count(), 'url': 'manage_hobbies', 'icon': 'fa-heart'},
         {'name': 'Technologies', 'count': Technology.objects.count(), 'url': 'manage_tech', 'icon': 'fa-microchip'},
         {'name': 'Statistics', 'count': Statistic.objects.count(), 'url': 'manage_stats', 'icon': 'fa-chart-simple'},
         {'name': 'Social Links', 'count': SocialLink.objects.count(), 'url': 'manage_socials', 'icon': 'fa-link'},
@@ -233,6 +221,8 @@ def manage_achievements(request): return generic_crud(request, Achievement, Achi
 @login_required
 def manage_services(request): return generic_crud(request, Service, ServiceForm, 'manage_services', 'Service')
 @login_required
+def manage_hobbies(request): return generic_crud(request, Hobby, HobbyForm, 'manage_hobbies', 'Hobby')
+@login_required
 def manage_workshops(request): return generic_crud(request, Workshop, WorkshopForm, 'manage_workshops', 'Workshop')
 @login_required
 def manage_stats(request): return generic_crud(request, Statistic, StatisticForm, 'manage_stats', 'Statistic')
@@ -266,6 +256,7 @@ DELETE_MODEL_MAP = {
     'Experience': (Experience, 'manage_experience'),
     'Achievement': (Achievement, 'manage_achievements'),
     'Service': (Service, 'manage_services'),
+    'Hobby': (Hobby, 'manage_hobbies'),
     'Workshop': (Workshop, 'manage_workshops'),
     'Statistic': (Statistic, 'manage_stats'),
     'Technology': (Technology, 'manage_tech'),
@@ -409,8 +400,11 @@ def portfolio_api(request):
             'percentage': e.percentage,
             'description': e.description,
             'logo': e.logo.url if e.logo else '',
+            'images': ([e.logo.url] if e.logo else []) + [image.image.url for image in e.images.all()],
+            'achievements': e.achievements or '',
+            'location': e.location,
         }
-        for e in Education.objects.filter(is_visible=True)
+        for e in Education.objects.filter(is_visible=True).prefetch_related('images')
     ]
 
     experience = [
@@ -486,11 +480,24 @@ def portfolio_api(request):
                 'date': c.issue_date.strftime('%b %Y') if c.issue_date else '',
                 'image': c.image.url if c.image else '',
                 'description': c.description,
-                'url': c.credential_url or '',
+                'pdf': c.pdf.url if c.pdf else '',
             }
             for c in Certificate.objects.filter(is_visible=True)
         ],
-        'workshops': list(Workshop.objects.filter(is_visible=True).values('title', 'organizer', 'date', 'description', 'topic')),
+        'workshops': [
+            {
+                'title': workshop.title,
+                'organizer': workshop.organizer,
+                'date': workshop.date.strftime('%b %Y') if workshop.date else '',
+                'description': workshop.description,
+                'topic': workshop.topic,
+                'url': workshop.url or '',
+                'images': ([workshop.image.url] if workshop.image else []) + [
+                    image.image.url for image in workshop.images.all()
+                ],
+            }
+            for workshop in Workshop.objects.filter(is_visible=True).prefetch_related('images')
+        ],
         'projects': [
             {
                 'id': p.id,
@@ -511,5 +518,6 @@ def portfolio_api(request):
         'achievements': list(Achievement.objects.filter(is_visible=True).values('title', 'description', 'date')),
         'services': [{'title': s.title, 'description': s.short_description, 'icon': s.icon}
                       for s in Service.objects.filter(is_active=True)],
+        'hobbies': list(Hobby.objects.filter(is_active=True).values('name', 'description', 'icon')),
     }
     return JsonResponse(data)

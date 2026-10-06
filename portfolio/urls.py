@@ -30,6 +30,7 @@ urlpatterns = [
     path('dashboard/experience/', views.manage_experience, name='manage_experience'),
     path('dashboard/achievements/', views.manage_achievements, name='manage_achievements'),
     path('dashboard/services/', views.manage_services, name='manage_services'),
+    path('dashboard/hobbies/', views.manage_hobbies, name='manage_hobbies'),
     path('dashboard/workshops/', views.manage_workshops, name='manage_workshops'),
     path('dashboard/stats/', views.manage_stats, name='manage_stats'),
     path('dashboard/tech/', views.manage_tech, name='manage_tech'),

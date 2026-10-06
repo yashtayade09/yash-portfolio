@@ -67,6 +67,14 @@ class Education(models.Model):
     def __str__(self):
         return f"{self.degree} at {self.institution}"
 
+class EducationImage(models.Model):
+    education = models.ForeignKey(Education, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='education/gallery/')
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['display_order', 'id']
+
 class Experience(models.Model):
     company = models.CharField(max_length=255)
     position = models.CharField(max_length=255)
@@ -164,6 +172,14 @@ class Workshop(models.Model):
     def __str__(self):
         return self.title
 
+class WorkshopImage(models.Model):
+    workshop = models.ForeignKey(Workshop, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='workshops/gallery/')
+    display_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['display_order', 'id']
+
 class ProjectCategory(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True, null=True)
@@ -238,6 +254,19 @@ class Service(models.Model):
 
     def __str__(self):
         return self.title
+
+class Hobby(models.Model):
+    name = models.CharField(max_length=120)
+    description = models.CharField(max_length=255, blank=True)
+    icon = models.CharField(max_length=100, blank=True, default='fa-heart')
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['display_order', 'name']
+
+    def __str__(self):
+        return self.name
 
 class Resume(models.Model):
     file = models.FileField(upload_to='resumes/', blank=True)

@@ -22,6 +22,7 @@ function EMPTY_DATA() {
         workshops: [],
         projects: [],
         achievements: [],
+        hobbies: [],
         services: [],
     };
 }
@@ -106,6 +107,7 @@ async function fetchPortfolioData() {
    BOOTSTRAP
 ------------------------------------------------------------------ */
 document.addEventListener('DOMContentLoaded', async () => {
+    initCosmicBackground();
     await fetchPortfolioData();
     initLoader();
     initTheme();
@@ -159,6 +161,352 @@ function initTheme() {
             if (sweep) sweep.classList.remove('active');
         }, 620);
     });
+}
+
+function initCosmicBackground() {
+    const canvas = $('bg-cosmos');
+    const context = canvas?.getContext('2d', { alpha: true, desynchronized: true });
+    if (!canvas || !context) return;
+
+    const tau = Math.PI * 2;
+    const darkColors = ['#b79aff', '#73eaff', '#fb91e8', '#f8f4ff', '#ffdca1'];
+    const lightColors = ['#d49b00', '#ed8a00', '#e6538a', '#a96e00', '#e9c900'];
+    const spriteCache = new Map();
+    const galaxy = [];
+    const stars = [];
+    const shards = [];
+    const streaks = [];
+    const ripples = [];
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let colors = darkColors;
+    let nebula = [];
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let angle = 0;
+    let elapsed = 0;
+    let previousTime = 0;
+    let nextFracture = 0;
+    let nextStreak = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let parallaxX = 0;
+    let parallaxY = 0;
+    let depth = 0;
+    let targetDepth = 0;
+    let frameWindow = 0;
+    let frameCount = 0;
+    let maxGalaxyParticles = 1900;
+
+    const random = (min, max) => min + Math.random() * (max - min);
+    const choose = (items) => items[Math.floor(Math.random() * items.length)];
+
+    function makeGlow(color, size = 64) {
+        const sprite = document.createElement('canvas');
+        sprite.width = sprite.height = size;
+        const glow = sprite.getContext('2d');
+        const gradient = glow.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(.14, `${color}bb`);
+        gradient.addColorStop(.42, `${color}30`);
+        gradient.addColorStop(1, `${color}00`);
+        glow.fillStyle = gradient;
+        glow.fillRect(0, 0, size, size);
+        return sprite;
+    }
+
+    function recolor() {
+        colors = document.documentElement.getAttribute('data-theme') === 'light' ? lightColors : darkColors;
+        for (const color of colors) {
+            if (!spriteCache.has(color)) spriteCache.set(color, makeGlow(color));
+        }
+        const nebulaColors = colors === lightColors
+            ? ['#f0d500', '#f28a00', '#e6538a', '#edbd54']
+            : ['#5540ff', '#1488d9', '#d239bb', '#ffb753'];
+        nebula = nebulaColors.map((color) => makeGlow(color, 256));
+        galaxy.forEach((particle) => { particle.color = choose(colors); });
+        stars.forEach((star) => { star.color = choose(colors); });
+    }
+
+    function seedScene() {
+        galaxy.length = 0;
+        stars.length = 0;
+        const mobile = width < 700;
+        const density = Math.max(.62, Math.min(1, width * height / (1280 * 800)));
+        maxGalaxyParticles = Math.round((mobile ? 760 : 1900) * density);
+        const starCount = Math.round((mobile ? 230 : 500) * Math.max(.72, density));
+
+        for (let i = 0; i < maxGalaxyParticles; i++) {
+            const arm = i % 4;
+            const radius = Math.pow(Math.random(), .72);
+            galaxy.push({
+                radius,
+                theta: arm * tau / 4 + radius * 4.8 + random(-.35, .35),
+                depth: random(-1, 1),
+                size: random(.35, 1.45) * (1.05 - radius * .45),
+                color: choose(colors),
+                alpha: random(.2, .78)
+            });
+        }
+
+        for (let i = 0; i < starCount; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() < .04 ? random(1.2, 1.9) : random(.35, .95),
+                phase: random(0, tau),
+                speed: random(.35, 1.5),
+                alpha: random(.2, .82),
+                hyper: Math.random() < .018,
+                color: choose(colors)
+            });
+        }
+    }
+
+    function resize() {
+        const bounds = canvas.getBoundingClientRect();
+        width = Math.max(1, bounds.width);
+        height = Math.max(1, bounds.height);
+        dpr = Math.min(window.devicePixelRatio || 1, width < 700 ? 1.35 : 1.65);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        seedScene();
+        recolor();
+    }
+
+    function acquire(pool) {
+        let item = pool.find((entry) => entry.life <= 0);
+        if (!item) {
+            item = {};
+            pool.push(item);
+        }
+        return item;
+    }
+
+    function fracture(x, y, intensity = 1) {
+        const count = Math.floor(random(5, 10));
+        for (let i = 0; i < count; i++) {
+            const direction = i / count * tau + random(-.24, .24);
+            const speed = random(.4, 1.5) * intensity;
+            const shard = acquire(shards);
+            Object.assign(shard, {
+                x, y, homeX: x, homeY: y,
+                px: x, py: y,
+                vx: Math.cos(direction) * speed,
+                vy: Math.sin(direction) * speed,
+                spin: random(-.13, .13),
+                rotation: random(0, tau),
+                size: random(2, 6) * Math.min(1.5, intensity),
+                life: random(45, 85), maxLife: 85,
+                reassemble: Math.random() < .28,
+                color: choose(colors),
+                trail: random(5, 15)
+            });
+        }
+        const ripple = acquire(ripples);
+        Object.assign(ripple, { x, y, radius: 3, life: 1, maxRadius: random(46, 115) * intensity, color: choose(colors) });
+    }
+
+    function shoot() {
+        const streak = acquire(streaks);
+        const direction = random(.45, 1.12) + (Math.random() < .5 ? Math.PI : 0);
+        const speed = random(7, 13);
+        Object.assign(streak, {
+            x: random(0, width), y: random(0, height * .75),
+            vx: Math.cos(direction) * speed, vy: Math.sin(direction) * speed,
+            life: random(42, 72), maxLife: 72,
+            length: random(55, 135), alpha: random(.3, .75)
+        });
+    }
+
+    function drawNebula(cx, cy, light) {
+        context.save();
+        context.globalCompositeOperation = 'lighter';
+        const size = Math.min(width, height);
+        const drift = Math.sin(elapsed * .00012) * size * .025;
+        const blobs = [
+            [cx - width * .13 + drift, cy - height * .07, size * .56, nebula[0], light ? .065 : .09],
+            [cx + width * .16 - drift, cy + height * .02, size * .44, nebula[1], light ? .055 : .075],
+            [cx + drift * .5, cy - height * .2, size * .36, nebula[2], light ? .05 : .065],
+            [cx - width * .06, cy + height * .13, size * .28, nebula[3], light ? .035 : .045]
+        ];
+        for (const [x, y, diameter, sprite, alpha] of blobs) {
+            context.globalAlpha = alpha;
+            context.drawImage(sprite, x - diameter / 2, y - diameter * .32, diameter, diameter * .64);
+        }
+        context.restore();
+    }
+
+    function drawGalaxy(cx, cy, light) {
+        const radius = Math.min(width, height) * (width < 700 ? .39 : .43);
+        const gx = cx + parallaxX * 13;
+        const gy = cy + parallaxY * 11 - depth * .12;
+        const coreRadius = radius * .43;
+        const core = context.createRadialGradient(gx, gy, 0, gx, gy, coreRadius);
+        core.addColorStop(0, light ? 'rgba(255,250,236,.16)' : 'rgba(255,249,244,.3)');
+        core.addColorStop(.1, light ? 'rgba(255,197,121,.12)' : 'rgba(255,215,244,.22)');
+        core.addColorStop(.36, light ? 'rgba(231,119,158,.055)' : 'rgba(157,118,255,.09)');
+        core.addColorStop(1, 'rgba(79,90,255,0)');
+        context.save();
+        context.globalCompositeOperation = 'lighter';
+        context.fillStyle = core;
+        context.beginPath();
+        context.ellipse(gx, gy, coreRadius, coreRadius * .3, angle * .12, 0, tau);
+        context.fill();
+
+        const radiusScale = radius;
+        for (const particle of galaxy) {
+            const theta = particle.theta + angle * (1 - particle.radius * .38);
+            const r = particle.radius * radiusScale;
+            const depthOffset = Math.sin(theta * 1.5 + particle.depth * 2) * particle.depth;
+            const x = gx + Math.cos(theta) * r * (1 + depthOffset * .1);
+            const y = gy + Math.sin(theta) * r * .3 + depthOffset * radius * .03;
+            const dotSize = particle.size * (1 + depthOffset * .2);
+            const pulse = .2 + (Math.sin(elapsed * .0018 + particle.theta) + 1) * .1;
+            context.globalAlpha = particle.alpha * pulse * (light ? .9 : 1);
+            const sprite = spriteCache.get(particle.color);
+            if (sprite) context.drawImage(sprite, x - dotSize * 7, y - dotSize * 7, dotSize * 14, dotSize * 14);
+        }
+        context.restore();
+    }
+
+    function drawStars(time, light) {
+        context.save();
+        context.globalCompositeOperation = 'lighter';
+        for (const star of stars) {
+            const pulse = .55 + Math.sin(time * .001 * star.speed + star.phase) * .3;
+            const x = star.x + parallaxX * 2.6 - depth * .015;
+            const y = star.y + parallaxY * 2.6 - depth * .02;
+            context.globalAlpha = star.alpha * pulse * (light ? .5 : 1);
+            if (star.hyper) {
+                const flare = star.size * (5 + pulse * 3);
+                context.strokeStyle = star.color;
+                context.lineWidth = .55;
+                context.beginPath();
+                context.moveTo(x - flare, y); context.lineTo(x + flare, y);
+                context.moveTo(x, y - flare); context.lineTo(x, y + flare);
+                context.stroke();
+            } else {
+                context.fillStyle = star.color;
+                context.beginPath();
+                context.arc(x, y, star.size, 0, tau);
+                context.fill();
+            }
+        }
+        context.restore();
+    }
+
+    function drawEffects() {
+        context.save();
+        context.globalCompositeOperation = 'lighter';
+        for (const shard of shards) {
+            if (shard.life <= 0) continue;
+            shard.px = shard.x; shard.py = shard.y;
+            if (shard.reassemble && shard.life < shard.maxLife * .45) {
+                shard.vx += (shard.homeX - shard.x) * .018;
+                shard.vy += (shard.homeY - shard.y) * .018;
+            }
+            shard.x += shard.vx; shard.y += shard.vy;
+            shard.vx *= .988; shard.vy *= .988;
+            shard.rotation += shard.spin; shard.life--;
+            context.globalAlpha = Math.max(0, shard.life / shard.maxLife) * .55;
+            context.strokeStyle = shard.color;
+            context.lineWidth = .8;
+            context.beginPath(); context.moveTo(shard.px, shard.py); context.lineTo(shard.x, shard.y); context.stroke();
+            context.save();
+            context.translate(shard.x, shard.y); context.rotate(shard.rotation);
+            context.globalAlpha = Math.max(0, shard.life / shard.maxLife);
+            context.fillStyle = shard.color;
+            context.beginPath(); context.moveTo(0, -shard.size); context.lineTo(shard.size * .48, shard.size * .7); context.lineTo(-shard.size * .48, shard.size * .7); context.closePath(); context.fill();
+            context.restore();
+        }
+
+        for (const streak of streaks) {
+            if (streak.life <= 0) continue;
+            streak.x += streak.vx; streak.y += streak.vy; streak.life--;
+            const fade = Math.min(1, streak.life / (streak.maxLife * .24)) * Math.min(1, (streak.maxLife - streak.life) / 8);
+            const magnitude = Math.hypot(streak.vx, streak.vy) || 1;
+            const tailX = streak.x - streak.vx / magnitude * streak.length;
+            const tailY = streak.y - streak.vy / magnitude * streak.length;
+            const trail = context.createLinearGradient(streak.x, streak.y, tailX, tailY);
+            trail.addColorStop(0, `rgba(255,255,255,${fade * streak.alpha})`);
+            trail.addColorStop(.2, `rgba(138,245,255,${fade * streak.alpha * .7})`);
+            trail.addColorStop(1, 'rgba(104,133,255,0)');
+            context.strokeStyle = trail; context.lineWidth = 1.2;
+            context.beginPath(); context.moveTo(streak.x, streak.y); context.lineTo(tailX, tailY); context.stroke();
+        }
+
+        for (const ripple of ripples) {
+            if (ripple.life <= 0) continue;
+            ripple.life -= .014; ripple.radius += (ripple.maxRadius - ripple.radius) * .035;
+            context.globalAlpha = Math.max(0, ripple.life) * .24;
+            context.strokeStyle = ripple.color; context.lineWidth = .7;
+            context.beginPath(); context.ellipse(ripple.x, ripple.y, ripple.radius, ripple.radius * .42, -.16, 0, tau); context.stroke();
+        }
+        context.restore();
+    }
+
+    function frame(time) {
+        requestAnimationFrame(frame);
+        if (!previousTime) previousTime = time;
+        const delta = Math.min(40, time - previousTime);
+        previousTime = time;
+        elapsed += delta;
+        parallaxX += (targetX - parallaxX) * .025;
+        parallaxY += (targetY - parallaxY) * .025;
+        depth += (targetDepth - depth) * .04;
+        if (!reducedMotion.matches) angle += delta * .00012;
+
+        context.setTransform(dpr, 0, 0, dpr, 0, 0);
+        context.clearRect(0, 0, width, height);
+        const light = document.documentElement.getAttribute('data-theme') === 'light';
+        const cx = width * .67;
+        const cy = height * .43;
+        drawNebula(cx, cy, light);
+        drawStars(time, light);
+        drawGalaxy(cx, cy, light);
+
+        if (!reducedMotion.matches) {
+            if (time > nextFracture) {
+                fracture(random(width * .12, width * .88), random(height * .08, height * .86), random(.65, 1.05));
+                nextFracture = time + random(1400, 3200);
+            }
+            if (time > nextStreak) {
+                shoot();
+                nextStreak = time + random(1800, 4800);
+            }
+        }
+        drawEffects();
+
+        frameCount++;
+        if (time - frameWindow > 2000) {
+            const fps = frameCount * 1000 / Math.max(1, time - frameWindow);
+            if (fps < 43 && galaxy.length > 480) galaxy.length = Math.floor(galaxy.length * .82);
+            frameCount = 0;
+            frameWindow = time;
+        }
+    }
+
+    function pointerMove(event) {
+        targetX = (event.clientX / width - .5) * 2;
+        targetY = (event.clientY / height - .5) * 2;
+    }
+
+    window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('pointermove', pointerMove, { passive: true });
+    window.addEventListener('scroll', () => { targetDepth = Math.min(180, window.scrollY * .08); }, { passive: true });
+    document.addEventListener('pointerdown', (event) => {
+        if (event.target.closest('a, button, input, textarea, select, label')) return;
+        fracture(event.clientX, event.clientY, event.pointerType === 'touch' ? 1.2 : 1);
+    }, { passive: true });
+    const themeObserver = new MutationObserver(recolor);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    resize();
+    frameWindow = performance.now();
+    nextFracture = frameWindow + 1200;
+    nextStreak = frameWindow + 1700;
+    requestAnimationFrame(frame);
 }
 
 function initCursor() {
@@ -220,16 +568,42 @@ function injectContent() {
 
     // Education
     renderTimeline('education-container', (portfolioData.education || []).map((edu) => `
-        <div class="timeline-item">
-            <div class="timeline-card">
-                <div class="timeline-header">
-                    <h3 class="timeline-title">${esc(edu.institution)}</h3>
-                    <span class="timeline-date">${esc(edu.duration)}</span>
+        <div class="timeline-item education-card-item">
+            <div class="timeline-card education-card cert-card--flip">
+                <div class="cert-flip-inner">
+                    <div class="cert-face cert-face--front education-face-front">
+                        <div class="timeline-header">
+                            <h3 class="timeline-title">${esc(edu.institution)}</h3>
+                            <span class="timeline-date">${esc(edu.duration)}</span>
+                        </div>
+                        <div class="timeline-meta">
+                            <strong>${esc(edu.course)}</strong>${edu.percentage ? ` | ${esc(edu.percentage)}` : ''}
+                        </div>
+                        ${edu.location ? `<span class="cert-issuer">${esc(edu.location)}</span>` : ''}
+                        ${edu.description ? `<p class="education-description">${esc(edu.description)}</p>` : ''}
+                        ${edu.achievements ? `<p class="education-description">${esc(edu.achievements)}</p>` : ''}
+                        <div class="education-front-actions">
+                            <button type="button" class="cert-flip-toggle" data-cert-flip aria-pressed="false">
+                                Photos <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cert-face cert-face--back education-face-back">
+                        ${Array.isArray(edu.images) && edu.images.length ? `
+                            <div class="workshop-slideshow education-slideshow" data-workshop-slideshow aria-label="${esc(edu.institution)} photos">
+                                ${edu.images.map((image, index) => `
+                                    <img src="${esc(image)}" class="workshop-slide${index === 0 ? ' is-active' : ''}"
+                                        alt="${esc(edu.institution)} photo ${index + 1}" loading="lazy"
+                                        onerror="this.style.display='none'">
+                                `).join('')}
+                            </div>` : `<div class="education-gallery-empty">Upload academic photos to build this gallery.</div>`}
+                        <div class="education-back-actions">
+                            <button type="button" class="cert-flip-toggle" data-cert-flip aria-pressed="true">
+                                <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> Back
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="timeline-meta">
-                    <strong>${esc(edu.course)}</strong>${edu.percentage ? ` | ${esc(edu.percentage)}` : ''}
-                </div>
-                ${edu.description ? `<p>${esc(edu.description)}</p>` : ''}
             </div>
         </div>
     `), 'No education records yet — check back soon.');
@@ -263,29 +637,82 @@ function injectContent() {
 
     // Certificates
     renderCards('certificates-container', (portfolioData.certificates || []).map((cert) => `
-        <div class="cert-card">
-            ${cert.image ? `<img src="${esc(cert.image)}" class="cert-img" alt="${esc(cert.title)}" loading="lazy"
-                onerror="this.style.display='none'">` : ''}
-            <div class="cert-content">
-                <h3 class="cert-title">${esc(cert.title)}</h3>
-                <span class="cert-issuer">${esc(cert.issuer)}${cert.date ? ` • ${esc(cert.date)}` : ''}</span>
-                ${cert.description ? `<p class="cert-desc">${esc(cert.description)}</p>` : ''}
-                ${cert.url ? `<a href="${esc(cert.url)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">View Credential</a>` : ''}
+        <div class="cert-card cert-card--flip">
+            <div class="cert-flip-inner">
+                <div class="cert-face cert-face--front">
+                    ${cert.image ? `<img src="${esc(cert.image)}" class="cert-img" alt="${esc(cert.title)}" loading="lazy"
+                        onerror="this.style.display='none'">` : ''}
+                    <div class="cert-content">
+                        <h3 class="cert-title">${esc(cert.title)}</h3>
+                        <span class="cert-issuer">${esc(cert.issuer)}${cert.date ? ` • ${esc(cert.date)}` : ''}</span>
+                        <button type="button" class="cert-flip-toggle" data-cert-flip aria-pressed="false">
+                            Details <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="cert-face cert-face--back">
+                    <div class="cert-back-heading">
+                        <span class="cert-back-label">Certificate details</span>
+                        <h3 class="cert-title">${esc(cert.title)}</h3>
+                        <span class="cert-issuer">${esc(cert.issuer)}${cert.date ? ` • ${esc(cert.date)}` : ''}</span>
+                    </div>
+                    ${cert.description ? `<p class="cert-desc">${esc(cert.description)}</p>` : ''}
+                    <div class="cert-back-actions">
+                        ${cert.pdf ? `<a href="${esc(cert.pdf)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+                            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Open credential PDF
+                        </a>` : ''}
+                        <button type="button" class="cert-flip-toggle" data-cert-flip aria-pressed="true">
+                            <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> Back
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     `), 'certificates', 'No certifications published yet.');
 
     // Workshops
     renderCards('workshops-container', (portfolioData.workshops || []).map((work) => `
-        <div class="cert-card">
-            <div class="cert-content">
-                <h3 class="cert-title">${esc(work.title)}</h3>
-                <span class="cert-issuer">${esc(work.organizer)}${work.date ? ` • ${esc(work.date)}` : ''}</span>
-                ${work.description ? `<p class="cert-desc">${esc(work.description)}</p>` : ''}
-                ${work.topic ? `<span class="tag">${esc(work.topic)}</span>` : ''}
+        <div class="cert-card cert-card--flip workshop-card">
+            <div class="cert-flip-inner">
+                <div class="cert-face cert-face--front">
+                    ${Array.isArray(work.images) && work.images.length ? `
+                        <div class="cert-img workshop-slideshow" data-workshop-slideshow aria-label="${esc(work.title)} photos">
+                            ${work.images.map((image, index) => `
+                                <img src="${esc(image)}" class="workshop-slide${index === 0 ? ' is-active' : ''}"
+                                    alt="${esc(work.title)} photo ${index + 1}" loading="lazy"
+                                    onerror="this.style.display='none'">
+                            `).join('')}
+                        </div>` : ''}
+                    <div class="cert-content">
+                        <h3 class="cert-title">${esc(work.title)}</h3>
+                        <span class="cert-issuer">${esc(work.organizer)}${work.date ? ` • ${esc(work.date)}` : ''}</span>
+                        ${work.topic ? `<span class="tag">${esc(work.topic)}</span>` : ''}
+                        <button type="button" class="cert-flip-toggle" data-cert-flip aria-pressed="false">
+                            Details <i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="cert-face cert-face--back">
+                    <div class="cert-back-heading">
+                        <span class="cert-back-label">Workshop details</span>
+                        <h3 class="cert-title">${esc(work.title)}</h3>
+                        <span class="cert-issuer">${esc(work.organizer)}${work.date ? ` • ${esc(work.date)}` : ''}</span>
+                        ${work.topic ? `<span class="tag">${esc(work.topic)}</span>` : ''}
+                    </div>
+                    ${work.description ? `<p class="cert-desc">${esc(work.description)}</p>` : ''}
+                    <div class="cert-back-actions">
+                        ${work.url ? `<a href="${esc(work.url)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+                            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Workshop link
+                        </a>` : ''}
+                        <button type="button" class="cert-flip-toggle" data-cert-flip aria-pressed="true">
+                            <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i> Back
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     `), 'workshops', 'No workshops published yet.');
+    initWorkshopSlides();
 
     // Projects
     renderProjectFilters();
@@ -300,6 +727,17 @@ function injectContent() {
             ${ach.date ? `<span class="timeline-date">${esc(ach.date)}</span>` : ''}
         </div>
     `), 'achievements', 'Achievements coming soon.');
+
+    // Hobbies
+    renderCards('hobbies-container', (portfolioData.hobbies || []).map((hobby) => `
+        <article class="hobby-item">
+            <i class="fa-solid ${esc(hobby.icon || 'fa-heart')}" aria-hidden="true"></i>
+            <div class="hobby-copy">
+                <h3>${esc(hobby.name)}</h3>
+                ${hobby.description ? `<p>${esc(hobby.description)}</p>` : ''}
+            </div>
+        </article>
+    `), 'hobbies', 'More interests to come.');
 
     // Services
     renderCards('services-container', (portfolioData.services || []).map((serv) => `
@@ -528,7 +966,7 @@ function renderProjects(filter) {
                 <span class="project-status">${esc(proj.status)}</span>
                 ${proj.images && proj.images.length
                     ? `<img src="${esc(proj.images[0])}" class="project-img" alt="${esc(proj.title)}" loading="lazy"
-                         onerror="this.src='https://via.placeholder.com/400x250?text=Project'">`
+                         onerror="window.handleProjectImageError(this)">`
                     : `<div class="project-img project-img--placeholder"><i class="fa-solid fa-code"></i></div>`}
             </div>
             <div class="project-content">
@@ -662,6 +1100,57 @@ function initScrollReveal() {
 function initInteractions() {
     initContactForm();
     initCopyEmail();
+    initCertificateFlips();
+}
+
+function initCertificateFlips() {
+    document.addEventListener('click', (event) => {
+        const toggle = event.target.closest('[data-cert-flip]');
+        if (!toggle) return;
+
+        const card = toggle.closest('.cert-card--flip');
+        if (!card) return;
+
+        const isFlipped = card.classList.toggle('is-flipped');
+        card.querySelectorAll('[data-cert-flip]').forEach((button) => {
+            button.setAttribute('aria-pressed', String(isFlipped));
+        });
+    });
+}
+
+function initWorkshopSlides() {
+    document.querySelectorAll('[data-workshop-slideshow]').forEach((slideshow) => {
+        if (slideshow.dataset.rollReady === 'true') return;
+        const slides = Array.from(slideshow.querySelectorAll('.workshop-slide'));
+        if (slides.length < 2) return;
+
+        slideshow.dataset.rollReady = 'true';
+        slideshow.classList.add('picture-roll');
+        const track = document.createElement('div');
+        track.className = 'picture-roll-track';
+        slides.forEach((slide) => track.appendChild(slide));
+        slides.forEach((slide) => {
+            const clone = slide.cloneNode(true);
+            clone.alt = '';
+            clone.setAttribute('aria-hidden', 'true');
+            clone.removeAttribute('onerror');
+            track.appendChild(clone);
+        });
+        slideshow.appendChild(track);
+
+        const sizeTrack = () => {
+            const slideWidth = slideshow.clientWidth;
+            if (!slideWidth) return;
+            track.querySelectorAll('.workshop-slide').forEach((slide) => {
+                slide.style.width = `${slideWidth}px`;
+            });
+            track.style.width = `${slideWidth * slides.length * 2}px`;
+            slideshow.style.setProperty('--roll-duration', `${slides.length * 4}s`);
+        };
+
+        sizeTrack();
+        new ResizeObserver(sizeTrack).observe(slideshow);
+    });
 }
 
 function initCopyEmail() {
@@ -737,6 +1226,18 @@ async function initContactForm() {
 /* ------------------------------------------------------------------
    5. MODAL SYSTEM
 ------------------------------------------------------------------ */
+window.handleProjectImageError = function (image) {
+    if (image.classList.contains('modal-hero-img')) {
+        image.remove();
+        return;
+    }
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'project-img project-img--placeholder';
+    placeholder.innerHTML = '<i class="fa-solid fa-code"></i>';
+    image.replaceWith(placeholder);
+};
+
 window.openProjectModal = function (id) {
     const proj = (portfolioData.projects || []).find((p) => String(p.id) === String(id));
     const overlay = $('modal-overlay');
@@ -752,7 +1253,7 @@ window.openProjectModal = function (id) {
         <div class="modal-body">
             ${proj.images && proj.images.length
                 ? `<img src="${esc(proj.images[0])}" class="modal-hero-img" alt="${esc(proj.title)}" loading="lazy"
-                     onerror="this.style.display='none'">` : ''}
+                     onerror="window.handleProjectImageError(this)">` : ''}
             <div class="modal-header-row">
                 <h2 class="modal-title">${esc(proj.title)}</h2>
                 <span class="tag">${esc(proj.status)}</span>

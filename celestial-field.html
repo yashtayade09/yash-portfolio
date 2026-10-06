@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#03020b">
+  <title>Noctiluca | Deep Field 01</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f3f0ff;
+      --muted: rgba(212, 211, 237, .56);
+      --line: rgba(190, 185, 255, .13);
+      --cyan: #8af5ff;
+      --pink: #ff7de2;
+      --gold: #ffd9a0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+
+    body {
+      min-height: 100svh;
+      overflow: hidden;
+      color: var(--ink);
+      background: linear-gradient(145deg, #000005 0%, #03020b 44%, #05010f 100%);
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+    }
+
+    #universe {
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: manipulation;
+    }
+
+    .atmosphere {
+      position: fixed;
+      z-index: 0;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      isolation: isolate;
+    }
+
+    .aurora {
+      position: absolute;
+      inset: -40% -20%;
+      opacity: .19;
+      filter: blur(54px);
+      transform: rotate(-16deg);
+      background: repeating-linear-gradient(
+        168deg,
+        transparent 0 16%,
+        rgba(57, 202, 232, .065) 18%,
+        rgba(155, 91, 255, .09) 19%,
+        transparent 23% 34%
+      );
+      animation: aurora-flow 38s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+    }
+
+    .hex-field {
+      position: absolute;
+      inset: -20%;
+      opacity: .032;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='62' viewBox='0 0 72 62'%3E%3Cpath d='M18 1h36l17 30-17 30H18L1 31z' fill='none' stroke='%23b9b3ff' stroke-width='.7'/%3E%3C/svg%3E");
+      background-size: 72px 62px;
+      mask-image: radial-gradient(ellipse at 58% 48%, #000 10%, transparent 76%);
+      animation: hex-drift 140s linear infinite;
+    }
+
+    .vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 54% 48%, transparent 28%, rgba(1, 1, 9, .28) 72%, rgba(0, 0, 5, .8) 120%);
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      opacity: .024;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.55'/%3E%3C/svg%3E");
+      mix-blend-mode: soft-light;
+    }
+
+    .interface {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: 100svh;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: clamp(22px, 4.2vw, 58px);
+      pointer-events: none;
+    }
+
+    .masthead, .readout, .control-row, .signature {
+      display: flex;
+      align-items: center;
+    }
+
+    .masthead { justify-content: space-between; gap: 24px; }
+
+    .wordmark {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .24em;
+      text-transform: uppercase;
+    }
+
+    .wordmark-mark {
+      display: grid;
+      width: 31px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      color: var(--cyan);
+      box-shadow: 0 0 24px rgba(94, 214, 255, .16), inset 0 0 14px rgba(126, 98, 255, .12);
+    }
+
+    .readout {
+      gap: 10px;
+      color: var(--muted);
+      font: 9px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #9df6ef;
+      box-shadow: 0 0 12px rgba(106, 255, 232, .9);
+      animation: breathe 2.4s ease-in-out infinite;
+    }
+
+    .lower {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .caption { max-width: 430px; }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 15px;
+      color: rgba(190, 186, 228, .61);
+      font: 9px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      width: 24px;
+      height: 1px;
+      content: "";
+      background: linear-gradient(90deg, var(--cyan), transparent);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 62px);
+      font-weight: 300;
+      letter-spacing: .015em;
+      line-height: .98;
+    }
+
+    h1 span {
+      color: transparent;
+      background: linear-gradient(100deg, #fff 4%, #bbdfff 38%, #dbaaff 68%, #ffb8e9 96%);
+      background-clip: text;
+      -webkit-background-clip: text;
+    }
+
+    .subline {
+      margin: 15px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: .06em;
+    }
+
+    .control-row {
+      gap: 9px;
+      pointer-events: auto;
+    }
+
+    button {
+      display: inline-flex;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      color: rgba(231, 229, 250, .78);
+      background: rgba(14, 12, 30, .38);
+      font: 9px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color .2s ease, border-color .2s ease, background .2s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    button:hover, button:focus-visible {
+      color: #fff;
+      border-color: rgba(138, 245, 255, .48);
+      background: rgba(23, 20, 47, .65);
+      outline: none;
+    }
+
+    .button-icon { color: var(--cyan); font-size: 12px; }
+
+    .signature {
+      position: absolute;
+      right: clamp(22px, 4.2vw, 58px);
+      bottom: 19px;
+      gap: 9px;
+      color: rgba(184, 180, 215, .35);
+      font: 8px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .signature i { width: 22px; height: 1px; background: var(--line); }
+
+    @keyframes aurora-flow {
+      from { transform: translate3d(-2%, -1%, 0) rotate(-16deg) scale(1); }
+      to { transform: translate3d(3%, 2%, 0) rotate(-12deg) scale(1.06); }
+    }
+
+    @keyframes hex-drift { to { background-position: 72px 62px; } }
+    @keyframes breathe { 50% { opacity: .45; box-shadow: 0 0 4px rgba(106, 255, 232, .45); } }
+
+    @media (max-width: 620px) {
+      .interface { padding: 21px 20px max(24px, env(safe-area-inset-bottom)); }
+      .readout { font-size: 8px; letter-spacing: .09em; }
+      .readout .optional { display: none; }
+      .lower { align-items: start; flex-direction: column; gap: 22px; }
+      .caption { max-width: 320px; }
+      .subline { max-width: 270px; font-size: 11px; line-height: 1.6; }
+      .signature { display: none; }
+      button { min-height: 36px; padding-inline: 11px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="universe" aria-hidden="true"></canvas>
+  <div class="atmosphere" aria-hidden="true">
+    <div class="aurora"></div>
+    <div class="hex-field"></div>
+    <div class="vignette"></div>
+    <div class="grain"></div>
+  </div>
+
+  <main class="interface">
+    <header class="masthead">
+      <div class="wordmark"><span class="wordmark-mark" aria-hidden="true">✳</span><span>Noctiluca / Deep field 01</span></div>
+      <div class="readout"><span class="live-dot"></span><span>Signal acquired</span><span class="optional">· 2.4 million light-years</span></div>
+    </header>
+
+    <section class="lower" aria-label="Deep field observatory">
+      <div class="caption">
+        <div class="eyebrow">An instrument for wonder</div>
+        <h1><span>Where light</span><br>learns to drift.</h1>
+        <p class="subline">A living portrait of the space between stars.</p>
+      </div>
+      <div class="control-row">
+        <button id="burst" type="button" title="Create a starburst at the center" aria-label="Create a starburst"><span class="button-icon" aria-hidden="true">✳</span><span>Make a wish</span></button>
+        <button id="motion" type="button" aria-pressed="false" title="Pause background motion"><span class="button-icon" aria-hidden="true">Ⅱ</span><span>Pause field</span></button>
+      </div>
+    </section>
+    <div class="signature" aria-hidden="true"><i></i> Observe / interact / repeat</div>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const canvas = document.querySelector("#universe");
+      const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+      const motionButton = document.querySelector("#motion");
+      const burstButton = document.querySelector("#burst");
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+      const palette = ["#b79aff", "#73eaff", "#fb91e8", "#f8f4ff", "#ffdca1"];
+      const TAU = Math.PI * 2;
+      const rand = (min, max) => min + Math.random() * (max - min);
+      const pick = (items) => items[(Math.random() * items.length) | 0];
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let pixelScale = 1;
+      let lastFrame = 0;
+      let elapsed = 0;
+      let angle = 0;
+      let paused = false;
+      let nextFracture = 0;
+      let nextShootingStar = 0;
+      let frameCount = 0;
+      let fpsWindowStart = 0;
+      let fpsSamples = 0;
+      let parallaxX = 0;
+      let parallaxY = 0;
+      let targetX = 0;
+      let targetY = 0;
+      let scrollDepth = 0;
+      let targetScrollDepth = 0;
+
+      const sprites = new Map();
+      const galaxy = [];
+      const stars = [];
+      const shards = [];
+      const streaks = [];
+      const ripples = [];
+      const capacity = { galaxy: 0, stars: 0 };
+
+      function makeGlow(color, size = 64) {
+        const sprite = document.createElement("canvas");
+        sprite.width = sprite.height = size;
+        const glow = sprite.getContext("2d");
+        const gradient = glow.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(.12, color + "cc");
+        gradient.addColorStop(.38, color + "38");
+        gradient.addColorStop(1, color + "00");
+        glow.fillStyle = gradient;
+        glow.fillRect(0, 0, size, size);
+        return sprite;
+      }
+
+      palette.forEach((color) => sprites.set(color, makeGlow(color)));
+      const nebulaSprites = [
+        makeGlow("#5540ff", 256),
+        makeGlow("#1488d9", 256),
+        makeGlow("#d239bb", 256),
+        makeGlow("#ffb753", 256)
+      ];
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        width = Math.max(1, rect.width);
+        height = Math.max(1, rect.height);
+        const mobile = matchMedia("(max-width: 700px)").matches;
+        const dprCap = mobile ? 1.35 : 1.65;
+        dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        pixelScale = Math.min(width, height);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        seedScene();
+      }
+
+      function seedScene() {
+        galaxy.length = 0;
+        stars.length = 0;
+        const mobile = width < 700;
+        const density = Math.min(1, (width * height) / (1280 * 800));
+        capacity.galaxy = Math.round((mobile ? 950 : 2450) * Math.max(.62, density));
+        capacity.stars = Math.round((mobile ? 250 : 560) * Math.max(.72, density));
+
+        for (let i = 0; i < capacity.galaxy; i++) {
+          const arm = i % 4;
+          const radius = Math.pow(Math.random(), .72);
+          const spread = rand(-.18, .18) * (1 + radius);
+          galaxy.push({
+            arm,
+            radius,
+            theta: arm * (TAU / 4) + radius * 4.8 + spread,
+            depth: rand(-1, 1),
+            size: rand(.35, 1.55) * (1.05 - radius * .45),
+            color: pick(palette),
+            alpha: rand(.16, .85)
+          });
+        }
+
+        for (let i = 0; i < capacity.stars; i++) {
+          stars.push({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            size: Math.random() < .055 ? rand(1.25, 2.05) : rand(.35, 1.05),
+            phase: rand(0, TAU),
+            speed: rand(.35, 1.6),
+            alpha: rand(.25, .9),
+            hyper: Math.random() < .018,
+            color: pick(palette)
+          });
+        }
+      }
+
+      function acquire(pool, factory) {
+        let item = pool.find((entry) => entry.life <= 0);
+        if (!item) {
+          item = factory();
+          pool.push(item);
+        }
+        return item;
+      }
+
+      function fracture(x, y, intensity = 1) {
+        const count = Math.floor(rand(5, 10));
+        for (let i = 0; i < count; i++) {
+          const shard = acquire(shards, () => ({}));
+          const a = (i / count) * TAU + rand(-.24, .24);
+          const speed = rand(.35, 1.7) * intensity;
+          Object.assign(shard, {
+            x, y,
+            homeX: x,
+            homeY: y,
+            px: x, py: y,
+            vx: Math.cos(a) * speed,
+            vy: Math.sin(a) * speed,
+            spin: rand(-.13, .13),
+            angle: rand(0, TAU),
+            size: rand(2, 7) * Math.min(1.6, intensity),
+            life: rand(42, 90),
+            maxLife: 90,
+            reassemble: Math.random() < .28,
+            color: pick(palette),
+            length: rand(5, 17)
+          });
+        }
+        const ripple = acquire(ripples, () => ({}));
+        Object.assign(ripple, { x, y, radius: 3, life: 1, maxRadius: rand(50, 135) * intensity, color: pick(palette) });
+      }
+
+      function shoot() {
+        const streak = acquire(streaks, () => ({}));
+        const angle = rand(.45, 1.13) + (Math.random() < .5 ? Math.PI : 0);
+        const speed = rand(8, 15);
+        const startX = Math.random() * width;
+        const startY = Math.random() * height * .74;
+        Object.assign(streak, {
+          x: startX,
+          y: startY,
+          px: startX,
+          py: startY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: rand(44, 76),
+          maxLife: 76,
+          length: rand(60, 150),
+          alpha: rand(.32, .9)
+        });
+      }
+
+      function drawNebula(cx, cy, time) {
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        const drift = Math.sin(time * .00012) * pixelScale * .035;
+        const blobs = [
+          [cx - width * .14 + drift, cy - height * .08, pixelScale * .58, nebulaSprites[0], .15],
+          [cx + width * .19 - drift, cy + height * .04, pixelScale * .45, nebulaSprites[1], .12],
+          [cx + width * .02, cy - height * .22 + drift, pixelScale * .39, nebulaSprites[2], .105],
+          [cx - width * .08, cy + height * .12 - drift, pixelScale * .3, nebulaSprites[3], .06]
+        ];
+        for (const [x, y, size, sprite, alpha] of blobs) {
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(sprite, x - size / 2, y - size / 2, size, size * .65);
+        }
+        ctx.restore();
+      }
+
+      function drawGalaxy(cx, cy) {
+        const radius = pixelScale * (width < 700 ? .38 : .43);
+        const tilt = .3;
+        const parallaxStrength = width < 700 ? 7 : 17;
+        const gx = cx + parallaxX * parallaxStrength;
+        const gy = cy + parallaxY * parallaxStrength - scrollDepth * .16;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        const coreSize = radius * .48;
+        const core = ctx.createRadialGradient(gx, gy, 0, gx, gy, coreSize);
+        core.addColorStop(0, "rgba(255,249,244,.38)");
+        core.addColorStop(.09, "rgba(255,215,244,.3)");
+        core.addColorStop(.32, "rgba(157,118,255,.12)");
+        core.addColorStop(1, "rgba(79,90,255,0)");
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.ellipse(gx, gy, coreSize, coreSize * tilt, angle * .12, 0, TAU);
+        ctx.fill();
+
+        for (const particle of galaxy) {
+          const theta = particle.theta + angle * (1 - particle.radius * .38);
+          const r = particle.radius * radius;
+          const depth = Math.sin(theta * 1.5 + particle.depth * 2) * particle.depth;
+          const perspective = 1 + depth * .11;
+          const x = gx + Math.cos(theta) * r * perspective;
+          const y = gy + Math.sin(theta) * r * tilt * perspective + depth * radius * .035;
+          const size = particle.size * (1 + depth * .24);
+          const alpha = particle.alpha * (.22 + (Math.sin(elapsed * .0018 + particle.theta) + 1) * .12);
+          ctx.globalAlpha = alpha;
+          const sprite = sprites.get(particle.color);
+          ctx.drawImage(sprite, x - size * 8, y - size * 8, size * 16, size * 16);
+        }
+
+        ctx.restore();
+      }
+
+      function drawHyperStar(star, x, y, pulse) {
+        const flare = star.size * (5 + pulse * 3);
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = star.alpha * pulse * .38;
+        ctx.strokeStyle = star.color;
+        ctx.lineWidth = .55;
+        ctx.beginPath();
+        ctx.moveTo(x - flare, y); ctx.lineTo(x + flare, y);
+        ctx.moveTo(x, y - flare); ctx.lineTo(x, y + flare);
+        ctx.stroke();
+        ctx.globalAlpha = star.alpha * pulse;
+        const glow = sprites.get(star.color);
+        ctx.drawImage(glow, x - flare, y - flare, flare * 2, flare * 2);
+        ctx.restore();
+      }
+
+      function drawStars(time) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (const star of stars) {
+          const pulse = .52 + Math.sin(time * .001 * star.speed + star.phase) * .34;
+          const x = star.x + parallaxX * 3 - scrollDepth * .018;
+          const y = star.y + parallaxY * 3 - scrollDepth * .025;
+          ctx.globalAlpha = star.alpha * pulse;
+          if (star.hyper) {
+            drawHyperStar(star, x, y, pulse);
+          } else {
+            ctx.fillStyle = star.color;
+            ctx.beginPath();
+            ctx.arc(x, y, star.size * (.8 + pulse * .4), 0, TAU);
+            ctx.fill();
+          }
+        }
+        ctx.restore();
+      }
+
+      function drawShards() {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (const shard of shards) {
+          if (shard.life <= 0) continue;
+          shard.px = shard.x;
+          shard.py = shard.y;
+          if (shard.reassemble && shard.life < shard.maxLife * .45) {
+            shard.vx += (shard.homeX - shard.x) * .018;
+            shard.vy += (shard.homeY - shard.y) * .018;
+          }
+          shard.x += shard.vx;
+          shard.y += shard.vy;
+          shard.vx *= .988;
+          shard.vy *= .988;
+          shard.angle += shard.spin;
+          shard.life -= 1;
+          const fade = Math.max(0, shard.life / shard.maxLife);
+          ctx.globalAlpha = fade * .55;
+          ctx.strokeStyle = shard.color;
+          ctx.lineWidth = Math.max(.5, shard.size * .22);
+          ctx.beginPath();
+          ctx.moveTo(shard.px, shard.py);
+          ctx.lineTo(shard.x, shard.y);
+          ctx.stroke();
+
+          ctx.save();
+          ctx.translate(shard.x, shard.y);
+          ctx.rotate(shard.angle);
+          ctx.globalAlpha = fade;
+          ctx.fillStyle = shard.color;
+          ctx.shadowColor = shard.color;
+          ctx.shadowBlur = shard.size * 2;
+          ctx.beginPath();
+          ctx.moveTo(0, -shard.size);
+          ctx.lineTo(shard.size * .48, shard.size * .7);
+          ctx.lineTo(-shard.size * .48, shard.size * .7);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.restore();
+      }
+
+      function drawStreaks() {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (const streak of streaks) {
+          if (streak.life <= 0) continue;
+          streak.px = streak.x;
+          streak.py = streak.y;
+          streak.x += streak.vx;
+          streak.y += streak.vy;
+          streak.life--;
+          const fade = Math.min(1, streak.life / (streak.maxLife * .24)) * Math.min(1, (streak.maxLife - streak.life) / 8);
+          const mag = Math.hypot(streak.vx, streak.vy) || 1;
+          const tx = streak.x - streak.vx / mag * streak.length;
+          const ty = streak.y - streak.vy / mag * streak.length;
+          const gradient = ctx.createLinearGradient(streak.x, streak.y, tx, ty);
+          gradient.addColorStop(0, `rgba(255,255,255,${fade * streak.alpha})`);
+          gradient.addColorStop(.18, `rgba(138,245,255,${fade * streak.alpha * .75})`);
+          gradient.addColorStop(1, "rgba(104,133,255,0)");
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = gradient;
+          ctx.lineWidth = 1.25;
+          ctx.beginPath();
+          ctx.moveTo(streak.x, streak.y);
+          ctx.lineTo(tx, ty);
+          ctx.stroke();
+          ctx.globalAlpha = fade * .7;
+          ctx.drawImage(sprites.get("#f8f4ff"), streak.x - 7, streak.y - 7, 14, 14);
+        }
+        ctx.restore();
+      }
+
+      function drawRipples() {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        for (const ripple of ripples) {
+          if (ripple.life <= 0) continue;
+          ripple.life -= .014;
+          ripple.radius += (ripple.maxRadius - ripple.radius) * .035;
+          ctx.globalAlpha = Math.max(0, ripple.life) * .28;
+          ctx.strokeStyle = ripple.color;
+          ctx.lineWidth = .7;
+          ctx.beginPath();
+          ctx.ellipse(ripple.x, ripple.y, ripple.radius, ripple.radius * .42, -.16, 0, TAU);
+          ctx.stroke();
+          ctx.globalAlpha *= .38;
+          ctx.beginPath();
+          ctx.ellipse(ripple.x, ripple.y, ripple.radius * .78, ripple.radius * .33, -.16, 0, TAU);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function maintainEffects(time) {
+        if (time > nextFracture) {
+          const x = width * rand(.16, .84);
+          const y = height * rand(.12, .82);
+          fracture(x, y, rand(.65, 1.1));
+          nextFracture = time + rand(1000, 3000);
+        }
+        if (time > nextShootingStar) {
+          shoot();
+          nextShootingStar = time + rand(1400, 4200);
+        }
+      }
+
+      function adaptQuality(time, delta) {
+        frameCount++;
+        if (time - fpsWindowStart < 1800) return;
+        const fps = frameCount * 1000 / Math.max(1, time - fpsWindowStart);
+        if (fps < 43 && capacity.galaxy > 520) {
+          capacity.galaxy = Math.floor(capacity.galaxy * .82);
+          galaxy.length = Math.min(galaxy.length, capacity.galaxy);
+        } else if (fps > 56 && capacity.galaxy < (width < 700 ? 950 : 2450)) {
+          const target = width < 700 ? 950 : 2450;
+          const add = Math.min(target - capacity.galaxy, 240);
+          const current = galaxy.length;
+          for (let i = 0; i < add; i++) {
+            const arm = (current + i) % 4;
+            const radius = Math.pow(Math.random(), .72);
+            galaxy.push({ arm, radius, theta: arm * (TAU / 4) + radius * 4.8 + rand(-.35, .35), depth: rand(-1, 1), size: rand(.35, 1.55) * (1.05 - radius * .45), color: pick(palette), alpha: rand(.16, .85) });
+          }
+          capacity.galaxy += add;
+        }
+        frameCount = 0;
+        fpsWindowStart = time;
+      }
+
+      function render(time) {
+        requestAnimationFrame(render);
+        if (!lastFrame) lastFrame = time;
+        const delta = Math.min(40, time - lastFrame);
+        lastFrame = time;
+        if (paused) return;
+        elapsed += delta;
+        adaptQuality(time, delta);
+        parallaxX += (targetX - parallaxX) * .025;
+        parallaxY += (targetY - parallaxY) * .025;
+        scrollDepth += (targetScrollDepth - scrollDepth) * .04;
+        if (!reducedMotion.matches) angle += delta * .00012;
+
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.fillStyle = "#020109";
+        ctx.fillRect(0, 0, width, height);
+        const background = ctx.createLinearGradient(0, 0, width * .92, height);
+        background.addColorStop(0, "#000005");
+        background.addColorStop(.48, "#03020b");
+        background.addColorStop(1, "#05010f");
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, width, height);
+
+        const cx = width * .53;
+        const cy = height * .49;
+        drawNebula(cx, cy, time);
+        drawStars(time);
+        drawGalaxy(cx, cy);
+        maintainEffects(time);
+        drawRipples();
+        drawShards();
+        drawStreaks();
+      }
+
+      function pointerMove(event) {
+        targetX = (event.clientX / width - .5) * 2;
+        targetY = (event.clientY / height - .5) * 2;
+      }
+
+      function pointerBurst(event) {
+        const bounds = canvas.getBoundingClientRect();
+        fracture(event.clientX - bounds.left, event.clientY - bounds.top, event.pointerType === "touch" ? 1.25 : 1);
+      }
+
+      function toggleMotion() {
+        paused = !paused;
+        motionButton.setAttribute("aria-pressed", String(paused));
+        motionButton.title = paused ? "Resume background motion" : "Pause background motion";
+        motionButton.innerHTML = paused
+          ? '<span class="button-icon" aria-hidden="true">▶</span><span>Resume field</span>'
+          : '<span class="button-icon" aria-hidden="true">Ⅱ</span><span>Pause field</span>';
+      }
+
+      window.addEventListener("resize", resize, { passive: true });
+      window.addEventListener("pointermove", pointerMove, { passive: true });
+      canvas.addEventListener("pointerdown", pointerBurst, { passive: true });
+      window.addEventListener("scroll", () => { targetScrollDepth = window.scrollY; }, { passive: true });
+      window.addEventListener("wheel", (event) => {
+        targetScrollDepth = Math.max(-180, Math.min(180, targetScrollDepth + event.deltaY * .35));
+      }, { passive: true });
+      motionButton.addEventListener("click", toggleMotion);
+      burstButton.addEventListener("click", () => fracture(width * .53, height * .49, 1.5));
+      resize();
+      fpsWindowStart = performance.now();
+      nextFracture = performance.now() + 1200;
+      nextShootingStar = performance.now() + 1700;
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>
