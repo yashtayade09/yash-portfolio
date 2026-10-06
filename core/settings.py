@@ -115,8 +115,23 @@ DATABASES = {
 }
 
 # Media files configuration
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# Supabase Storage for uploaded media
+AWS_ACCESS_KEY_ID = os.getenv('2e6fd7ff9160aa227d5f271e2f8307a0')
+AWS_SECRET_ACCESS_KEY = os.getenv('c64ae36953f629565a9dbf33ed6b4c9c3799bb677e29a063b6b241a3f5cee7ca')
+AWS_STORAGE_BUCKET_NAME = 'portfolio-media'
+AWS_S3_ENDPOINT_URL = os.getenv('https://qydubznugntpsbsegzkn.storage.supabase.co/storage/v1/s3')
+AWS_S3_CUSTOM_DOMAIN = 'qydubznugntpsbsegzkn.supabase.co/storage/v1/object/public/portfolio-media'
+AWS_S3_REGION_NAME = os.getenv('ap-northeast-2')
+AWS_S3_ADDRESSING_STYLE = 'path'
+AWS_QUERYSTRING_AUTH = False
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3.S3Storage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Static files configuration
 STATIC_URL = '/static/'
