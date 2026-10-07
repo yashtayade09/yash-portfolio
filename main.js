@@ -834,6 +834,13 @@ function renderStats() {
     }
 
     container.innerHTML = cards.join('');
+    const certificateContainer = $('certificate-stat-container');
+    if (certificateContainer) {
+        const certificateCards = [...container.querySelectorAll('.stat-card')].filter((card) =>
+            /^certificates?$/i.test(card.querySelector('.stat-label')?.textContent.trim() || '')
+        );
+        certificateContainer.replaceChildren(...certificateCards);
+    }
 }
 
 /* ------------------------------------------------------------------

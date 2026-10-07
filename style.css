@@ -975,7 +975,7 @@ input, textarea, select {
 }
 
 /* ==========================================================================
-   9. STATS (matches db-metric cards)
+   9. STATS
    ========================================================================== */
 .stats {
     padding: 60px 0 20px;
@@ -983,14 +983,15 @@ input, textarea, select {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 250px));
+    justify-content: center;
+    gap: 16px;
 }
 
 .stat-card {
     background: var(--panel);
     border: 1px solid var(--border);
-    padding: 26px 22px;
+    padding: 22px 18px;
     border-radius: var(--radius);
     box-shadow: var(--shadow-md);
     display: flex;
@@ -1019,9 +1020,9 @@ input, textarea, select {
 }
 
 .stat-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 13px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1033,7 +1034,7 @@ input, textarea, select {
 
 .stat-value {
     display: block;
-    font-size: 34px;
+    font-size: 30px;
     font-weight: 700;
     font-family: var(--font-display);
     background: var(--grad-primary);
@@ -1050,6 +1051,47 @@ input, textarea, select {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: .09em;
+}
+
+.about-details .stats-grid {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+}
+
+.about-details .stat-card {
+    padding: 20px;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+    align-items: flex-start;
+    gap: 4px;
+    text-align: left;
+    transition: border-color .25s ease, transform .25s ease;
+}
+
+.about-details .stat-card::before,
+.about-details .stat-icon { display: none; }
+
+.about-details .stat-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(61, 127, 255, 0.45);
+    box-shadow: none;
+}
+
+.about-details .stat-value {
+    order: 1;
+    font-size: 16px;
+    font-weight: 550;
+    color: var(--text);
+    background: none;
+    -webkit-text-fill-color: currentColor;
+    line-height: 1.6;
+}
+
+.about-details .stat-label {
+    order: 0;
+    font-size: 11px;
+    color: var(--blue);
+    letter-spacing: .12em;
 }
 
 /* ==========================================================================
